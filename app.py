@@ -2,73 +2,75 @@ import streamlit as st
 import re
 from datetime import datetime
 
-# 1. SAYFA AYARLARI
-st.set_page_config(page_title="Citemate Pro", page_icon="📚", layout="wide")
+# PAGE CONFIG
+st.set_page_config(page_title="Citemate v2.0", page_icon="📚", layout="wide")
 
-# Safari uyumlu temel stil
+# TÜRKÇE ARAYÜZ STİLİ
 st.markdown("""
     <style>
-    .stTextArea textarea { font-family: 'Times New Roman', serif; font-size: 16px !important; }
-    .preview-box { background-color: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #ddd; line-height: 1.6; }
-    .ref-item { padding: 10px; border-bottom: 1px solid #eee; margin-bottom: 5px; }
+    .main { background-color: #f9f9f9; }
+    .stTextArea textarea { font-family: 'Times New Roman', serif; font-size: 17px !important; line-height: 1.6; }
+    .ref-box { background: white; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. SESSION STATE (Hafıza)
-if 'references' not in st.session_state:
-    st.session_state.references = []
+# SESSION STATE
+if 'refs' not in st.session_state: st.session_state.refs = []
 
-st.title("📚 Citemate Pro")
-st.caption("Profesyonel Akademik Yazım ve Atıf Sistemi")
+st.title("🚀 Citemate v2.0")
+st.caption("Akademik Yazım ve Otomatik Kaynakça Yönetimi")
 
-# 3. EKRAN BÖLÜMLERİ
-col_left, col_right = st.columns([6, 4])
+# FORMAT SEÇİMİ (v2.0 Yeni Özellik)
+format_secimi = st.selectbox(
+    "Alıntı Formatı Seçin", 
+    ["Vancouver", "APA (Numeric)", "APA (Author-Date)", "Harvard", "MLA", "Chicago"],
+    help="Format değiştirildiğinde kaynakça otomatik güncellenir."
+)
 
-with col_left:
-    st.subheader("✍️ Akademik Editör")
-    editor_text = st.text_area("Metninizi buraya yazın (Atıf yerlerine [cite] koyun)", 
-                              placeholder="Gömülü kaninler üzerine yazmaya başlayın...",
-                              height=400)
-    
-    # Atıf İşleme Mantığı
-    processed_text = editor_text
-    ref_count = len(st.session_state.references)
-    
-    for i in range(ref_count):
-        processed_text = processed_text.replace("[cite]", f"({i+1})", 1)
-    
-    st.markdown("### 📖 Canlı Önizleme")
-    st.markdown(f'<div class="preview-box">{processed_text}</div>', unsafe_allow_html=True)
+col_sol, col_sag = st.columns([6, 4])
 
-with col_right:
-    st.subheader("📋 Kaynak Yönetimi")
+with col_sol:
+    st.subheader("📝 Akademik Editör")
+    metin = st.text_area("Yazınızı buraya girin ve [cite] etiketlerini ekleyin:", height=450, placeholder="Örn: Gömülü kaninler anomalidir [cite].")
     
-    with st.expander("➕ Yeni Kaynak Ekle", expanded=True):
-        source_url = st.text_input("PubMed / Google Scholar / DOI Linki")
-        cit_format = st.selectbox("Format", ["Vancouver", "APA", "Harvard", "MLA"])
+    # DİNAMİK ATIF MOTORU
+    islenmis_metin = metin
+    for i in range(len(st.session_state.refs)):
+        islenmis_metin = islenmis_metin.replace("[cite]", f"**({i+1})**", 1)
+    
+    st.markdown("### 📄 Canlı Önizleme")
+    st.info(islenmis_metin if metin else "Metin girildiğinde atıflar burada görünecek.")
+
+with col_sag:
+    st.subheader("📚 Kaynak Yönetimi")
+    
+    with st.form("kaynak_ekle", clear_on_submit=True):
+        url = st.text_input("Kaynak URL / DOI", placeholder="https://doi.org/...")
+        ekle_btn = st.form_submit_button("➕ Kaynak Ekle")
         
-        if st.button("Kaynağı İşle ve Listeye Ekle"):
-            if source_url:
-                timestamp = datetime.now().strftime("%Y")
-                new_ref = {
-                    "url": source_url,
-                    "format": cit_format,
-                    "display": f"{source_url} (Accessed: {timestamp})"
-                }
-                st.session_state.references.append(new_ref)
-                st.rerun()
-            else:
-                st.error("Lütfen bir link girin.")
+        if ekle_btn and url:
+            yeni_ref = {
+                "url": url,
+                "tarih": datetime.now().strftime("%Y"),
+                "id": len(st.session_state.refs) + 1
+            }
+            st.session_state.refs.append(yeni_ref)
+            st.rerun()
 
     st.divider()
     st.subheader("📖 Kaynakça (References)")
     
-    if st.session_state.references:
-        for idx, ref in enumerate(st.session_state.references):
-            st.markdown(f"<div class='ref-item'><b>({idx+1})</b> {ref['display']} <br><small>Format: {ref['format']}</small></div>", unsafe_allow_html=True)
+    if st.session_state.refs:
+        bib_text = f"**KAYNAKÇA ({format_secimi})**\n\n"
+        for idx, r in enumerate(st.session_state.refs):
+            ref_satiri = f"({idx+1}) {r['url']} (Erişim: {r['tarih']})"
+            st.markdown(f"<div class='ref-box'>{ref_satiri}</div>", unsafe_allow_html=True)
+            bib_text += f"{idx+1}. {ref_satiri}\n"
         
-        if st.button("Kütüphaneyi Sıfırla"):
-            st.session_state.references = []
+        st.download_button("⬇️ Kaynakçayı İndir (TXT)", data=bib_text, file_name="kaynakca.txt")
+        
+        if st.button("🗑️ Tümünü Temizle"):
+            st.session_state.refs = []
             st.rerun()
     else:
-        st.info("Henüz kaynak eklenmedi. [cite] kullanarak yazmaya başlayın.")
+        st.write("Henüz kaynak eklenmedi.")
