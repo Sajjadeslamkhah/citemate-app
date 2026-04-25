@@ -3,100 +3,112 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-# 1. SAYFA YAPILANDIRMASI
-st.set_page_config(page_title="Citemate Citation Engine", page_icon="📖", layout="centered")
+# 1. SAYFA AYARLARI
+st.set_page_config(page_title="Citemate Engine v5", page_icon="📚", layout="wide")
 
-# 2. GÖRSEL TASARIM
+# 2. RENK VE TEMA DÜZELTMESİ (Her temada okunabilir)
 st.markdown("""
     <style>
-    .stApp { background-color: #f4f7f6; }
+    /* Başlıklar ve metinler için net renkler */
+    h1, h2, h3, p, span { color: #ffffff !important; }
+    .stTabs [data-baseweb="tab-list"] button { color: white; font-size: 18px; }
     .cite-card {
-        background-color: white;
+        background-color: #262730;
         padding: 20px;
-        border-radius: 10px;
-        border-left: 5px solid #2e7d32;
-        margin-bottom: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        color: #333;
+        border-radius: 12px;
+        border: 1px solid #4CAF50;
+        margin-bottom: 15px;
     }
-    .format-label { font-weight: bold; color: #2e7d32; }
+    .instruction-box { background-color: #1e1e1e; padding: 15px; border-radius: 8px; border-left: 5px solid #ff4b4b; }
+    code { color: #ffbd45 !important; background-color: #1a1a1a !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. HAFIZA VE FONKSİYONLAR
-if 'refs' not in st.session_state: st.session_state.refs = []
+# 3. HAFIZA YÖNETİMİ
+if 'references' not in st.session_state: st.session_state.references = []
 
-def get_metadata(url):
+# 4. YARDIMCI FONKSİYONLAR
+def get_title(url):
     try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(url, headers=headers, timeout=5)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        title = soup.title.string if soup.title else url
-        return title.strip()
-    except:
-        return url
+        res = requests.get(url, timeout=5, headers={'User-Agent': 'Mozilla/5.0'})
+        soup = BeautifulSoup(res.text, 'html.parser')
+        return soup.title.string.strip() if soup.title else url
+    except: return url
 
-# 4. ARAYÜZ
-st.title("📖 Academic Citation Engine")
-st.write("Linkleri ekleyin, akademik formatta çıktınızı anında alın.")
+def add_multiple_sources(input_str, source_type):
+    urls = [u.strip() for u in input_str.split('\n') if u.strip()]
+    added_count = 0
+    for u in urls:
+        # Mükerrer Kontrolü
+        if not any(r['url'] == u for r in st.session_state.references):
+            title = get_title(u)
+            st.session_state.references.append({
+                "url": u, "title": title, "type": source_type,
+                "year": datetime.now().year, "access": datetime.now().strftime("%d.%m.%Y")
+            })
+            added_count += 1
+    return added_count
 
-# FORMAT SEÇİCİ
-selected_format = st.radio(
-    "Hedef Formatı Seçin:",
-    ["Vancouver (Sayısal)", "APA (Yazar-Tarih)", "MLA", "Harvard"],
-    horizontal=True
-)
+# 5. ARAYÜZ
+st.title("📚 Citemate v5.0")
+st.subheader("Akademik Kaynak ve Atıf Dönüştürücü")
+
+# NASIL KULLANILIR SEKİSİ
+with st.expander("❓ Nasıl Kullanılır? (Rehber)"):
+    st.markdown("""
+    1. **Format Seçin:** En üstteki menüden hedef formatınızı belirleyin.
+    2. **Kaynak Ekleyin:** Linkleri veya PDF bağlantılarını ilgili sekmeye **alt alta** yapıştırın.
+    3. **Toplu İşlem:** 'Hepsini İşle' butonuna basın, sistem mükerrer olanları ayıklar.
+    4. **Sonuçları Alın:** Her kaynağın altında hem **Metin İçi (In-text)** hem de **Kaynakça (Bibliography)** halini göreceksiniz.
+    """)
+
+# FORMAT VE TÜR SEÇİMİ
+sel_format = st.selectbox("Hedef Akademik Format:", ["Vancouver", "APA 7th", "Harvard", "MLA"])
+
+tab1, tab2 = st.tabs(["🔗 Web Linkleri Ekle", "📄 PDF Bağlantıları Ekle"])
+
+with tab1:
+    urls_input = st.text_area("Web linklerini her satıra bir tane gelecek şekilde yapıştırın:", height=150)
+    if st.button("Linkleri Toplu İşle", type="primary"):
+        count = add_multiple_sources(urls_input, "Web")
+        st.success(f"{count} yeni web kaynağı eklendi!")
+
+with tab2:
+    pdf_input = st.text_area("PDF (DOI/Direct) linklerini alt alta yapıştırın:", height=150)
+    if st.button("PDF'leri Toplu İşle", type="primary"):
+        count = add_multiple_sources(pdf_input, "PDF")
+        st.success(f"{count} yeni PDF kaynağı eklendi!")
 
 st.divider()
 
-# KAYNAK EKLEME ALANI
-with st.container():
-    col1, col2 = st.columns([8, 2])
-    with col1:
-        new_url = st.text_input("Makale, PDF veya Web Linki yapıştırın:", placeholder="https://doi.org/...")
-    with col2:
-        st.write("##") # Boşluk
-        if st.button("Kaynağı Çek", type="primary", use_container_width=True):
-            if new_url:
-                with st.spinner('Veriler çekiliyor...'):
-                    title = get_metadata(new_url)
-                    # Mükerrer kontrolü
-                    if not any(r['url'] == new_url for r in st.session_state.refs):
-                        st.session_state.refs.append({
-                            "url": new_url,
-                            "title": title,
-                            "date": datetime.now().strftime("%Y"),
-                            "access_date": datetime.now().strftime("%d.%m.%Y")
-                        })
-                    else:
-                        st.warning("Bu kaynak zaten ekli.")
-            else:
-                st.error("Lütfen bir link girin.")
+# 6. SONUÇLAR: METİN İÇİ VE KAYNAKÇA
+st.header("📋 Dönüştürülmüş Kaynaklar")
 
-st.divider()
+if st.session_state.references:
+    for idx, ref in enumerate(st.session_state.references, 1):
+        with st.container():
+            st.markdown(f"### Kaynak #{idx} ({ref['type']})")
+            
+            # Format Mantığı
+            if sel_format == "Vancouver":
+                in_text = f"({idx})"
+                bib = f"{idx}. {ref['title']}. Available at: {ref['url']} (Accessed: {ref['access']})"
+            else: # APA Örneği
+                in_text = f"(Anon, {ref['year']})"
+                bib = f"{ref['title']}. ({ref['year']}). Retrieved from {ref['url']}"
 
-# 5. LİSTELEME VE FORMATLAMA
-st.subheader("📋 Kaynakça Listesi")
-
-if st.session_state.refs:
-    for i, ref in enumerate(st.session_state.refs):
-        # Formatlara göre çıktı hazırlama
-        if selected_format == "Vancouver (Sayısal)":
-            citation = f"({i+1}) {ref['title']}. Available at: {ref['url']} (Accessed: {ref['access_date']})"
-        elif selected_format == "APA (Yazar-Tarih)":
-            citation = f"{ref['title']}. ({ref['date']}). Retrieved from {ref['url']}"
-        else:
-            citation = f"{ref['title']}, {ref['url']}, {ref['date']}."
-
-        st.markdown(f"""
-            <div class="cite-card">
-                {citation}
-            </div>
-            """, unsafe_allow_html=True)
-        st.code(citation, language="text") # Kolay kopyalama için
+            # GÖRSEL KARTLAR
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.info("**Metin İçinde Yazımı:**")
+                st.code(in_text, language="text")
+            with col_b:
+                st.success("**Kaynakça Yazımı:**")
+                st.code(bib, language="text")
+            st.divider()
 
     if st.button("🗑️ Tüm Listeyi Temizle"):
-        st.session_state.refs = []
+        st.session_state.references = []
         st.rerun()
 else:
-    st.info("Henüz kaynak eklenmedi. Yukarıdaki alana bir link yapıştırarak başlayın.")
+    st.info("Henüz kaynak eklenmedi. Linkleri yukarıdaki alanlara yapıştırıp 'İşle' butonuna basın.")
