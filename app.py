@@ -2,21 +2,20 @@ import streamlit as st
 import re
 
 # Sayfa Ayarları
-st.set_page_config(layout="wide", page_title="Citemate Pro v1.0")
+st.set_page_config(layout="wide", page_title="Citemate Pro")
 
-# Stil Dosyası (Daha profesyonel görünüm için)
 st.markdown("""
     <style>
     .main { background-color: #f8f9fa; }
     .stTextArea textarea { font-size: 16px !important; font-family: 'Times New Roman', serif; }
-    .cite-box { border-left: 5px solid #007bff; padding: 10px; background: #e9ecef; border-radius: 5px; }
+    .reference-item { padding: 8px; border-bottom: 1px solid #ddd; margin-bottom: 5px; }
     </style>
     """, unsafe_content_safe=True)
 
 st.title("🔬 Citemate Pro")
-st.caption("Gelişmiş Akademik Atıf ve Kaynakça Yönetim Sistemi")
+st.caption("Akademik Atıf ve Kaynakça Otomasyonu")
 
-# Kaynakları hafızada tutmak için session_state kullanalım
+# Kaynakları session_state içinde tutalım
 if 'references' not in st.session_state:
     st.session_state.references = []
 
@@ -24,48 +23,53 @@ col1, col2 = st.columns([6, 4])
 
 with col1:
     st.subheader("📝 Akademik Editör")
-    st.info("İpucu: Atıf eklemek istediğiniz yere [cite] yazın ve sağ panelden kaynağı yükleyin.")
+    st.info("Atıf yapmak istediğiniz yere [cite] yazın.")
     
-    raw_text = st.text_area("Makale Metni", 
-                            placeholder="Gömülü dişler üzerine çalışmanızı buraya yazın...",
-                            height=500)
+    # Metin Girişi
+    input_text = st.text_area("Makale Metni", 
+                            placeholder="Metninizi buraya yazın ve atıf yerlerine [cite] ekleyin...",
+                            height=400)
     
-    # Otomatik Atıf Dönüştürücü
-    processed_text = raw_text
-    citation_slots = re.findall(r"\[cite\]", raw_text)
+    # DİNAMİK DÖNÜŞTÜRME: [cite] yazılarını (1), (2) vb. ile değiştirme
+    processed_text = input_text
+    count = input_text.count("[cite]")
     
-    for i, _ in enumerate(citation_slots):
-        if i < len(st.session_state.references):
-            processed_text = processed_text.replace("[cite]", f"({i+1})", 1)
+    # Kaynak sayısı kadar [cite] etiketini sırayla değiştir
+    for i in range(len(st.session_state.references)):
+        processed_text = processed_text.replace("[cite]", f"({i+1})", 1)
     
-    st.markdown("### 📄 Önizleme (Atıflar Eklenmiş Hali)")
-    st.write(processed_text)
+    st.divider()
+    st.subheader("📄 Nihai Metin (Atıflar İşlenmiş)")
+    if input_text:
+        st.write(processed_text)
+    else:
+        st.write("Editöre yazı yazdığınızda atıflar burada görünecek.")
 
 with col2:
     st.subheader("📚 Kaynak Yönetimi")
     
-    with st.container():
-        st.write("📥 **Yeni Kaynak Ekle**")
-        new_ref = st.text_input("Link veya DOI (PubMed, Scholar, vb.)", key="ref_input")
-        format_choice = st.selectbox("Format", ["APA", "Vancouver", "Harvard"])
+    # Yeni Kaynak Ekleme Formu
+    with st.form("ref_form", clear_on_submit=True):
+        new_ref = st.text_input("Link veya DOI (PubMed, Scholar, vb.)")
+        format_choice = st.selectbox("Format", ["Vancouver (Sayısal)", "APA", "Harvard"])
+        submit_button = st.form_submit_button("Kaynağı Ekle")
         
-        if st.button("Kaynağı İşle ve Ekle"):
+        if submit_button:
             if new_ref:
-                # Normalde burada PubMed/DOI API'leri çalışır, şimdilik simüle ediyoruz:
                 st.session_state.references.append({"link": new_ref, "format": format_choice})
-                st.toast("Kaynak başarıyla sıraya eklendi!", icon="✅")
+                st.rerun() # Sayfayı yenileyerek metni günceller
             else:
-                st.error("Lütfen geçerli bir kaynak girin.")
+                st.error("Lütfen bir link girin.")
 
     st.divider()
     st.subheader("📖 Kaynakça (References)")
     
     if st.session_state.references:
         for idx, ref in enumerate(st.session_state.references):
-            st.markdown(f"**[{idx+1}]** {ref['link']} — *({ref['format']} Formatında İşlendi)*")
+            st.markdown(f"<div class='reference-item'><b>({idx+1})</b> {ref['link']}</div>", unsafe_allow_html=True)
+        
+        if st.button("Tümünü Temizle"):
+            st.session_state.references = []
+            st.rerun()
     else:
-        st.write("Henüz kaynak eklenmedi.")
-
-    if st.button("Kütüphaneyi Temizle"):
-        st.session_state.references = []
-        st.rerun()
+        st.info("Henüz kaynak eklenmedi. Metne [cite] ekleyip buradan kaynağı tanımlayın.")
