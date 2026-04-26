@@ -22,22 +22,18 @@ st.markdown("""
 
 if 'refs' not in st.session_state: st.session_state.refs = []
 
-# 3. AKILLI AKADEMİK ARAMA VE ÇEKME FONKSİYONLARI
+# 3. AKILLI AKADEMİK ARAMA FONKSİYONLARI
 def fetch_from_crossref(query, is_doi=False):
-    """DOI veya Başlık ile Crossref üzerinden arama yapar."""
     if is_doi:
         url = f"https://api.crossref.org/works/{query}"
     else:
-        # Başlık araması için query parametresi kullanılır
         url = f"https://api.crossref.org/works?query={query}&rows=1"
     
     try:
         res = requests.get(url, timeout=10)
         if res.status_code == 200:
             data = res.json()['message']
-            # Eğer başlık aramasıysa liste döner, DOI ise direkt obje
             item = data['items'][0] if 'items' in data else data
-            
             title = item.get('title', ['Başlık Bulunamadı'])[0]
             authors = item.get('author', [])
             author_str = authors[0].get('family', 'Anonim') if authors else "Anonim"
@@ -57,7 +53,7 @@ def process_pdf(file_bytes, filename):
         if doi_match:
             return fetch_from_crossref(doi_match.group().strip("/"), is_doi=True)
         lines = [l.strip() for l in text.split('\n') if len(l.strip()) > 15]
-        return lines[0], "Doküman", 2026, filename
+        return lines[0] if lines else filename.replace(".pdf", ""), "Doküman", 2026, filename
     except: return filename, "Hata", 2026, filename
 
 # 4. ARAYÜZ
@@ -90,10 +86,11 @@ with col_in:
             with st.spinner("Analiz ediliyor..."):
                 if doi_match:
                     res = fetch_from_crossref(doi_match.group().strip("/"), is_doi=True)
-                else: # Scrapping dene
+                else:
                     res = (url_in, "Web Kaynağı", 2026, url_in)
-                st.session_state.refs.append({"title": res[0], "author": res[1], "year": res[2], "url": res[3]})
-                st.rerun()
+                if res:
+                    st.session_state.refs.append({"title": res[0], "author": res[1], "year": res[2], "url": res[3]})
+                    st.rerun()
 
     with t_pdf:
         pdf_file = st.file_uploader("PDF Sürükleyin", type="pdf")
@@ -125,6 +122,7 @@ with col_out:
                 all_bib += cite + "\n\n"
 
         with tab_intext:
+            st.info(f"💡 {style} formatına göre atıf gösterimleri:")
             for i, r in enumerate(st.session_state.refs, 1):
                 intext = f"({i})" if style == "Vancouver" else f"({r['author']}, {r['year']})"
                 st.markdown(f"**{r['title'][:50]}...**")
@@ -143,61 +141,4 @@ with col_out:
         st.subheader("Toplu Metin İçi Kopyalama")
         st.text_area("Atıf Etiketleri:", value=all_intext, height=100)
     else:
-        st.info("Henüz kaynak eklenmedi.")    """Tüm sayfaları değil, sadece kritik alanları tarayan hızlı PDF okuyucu."""
-    try:
-        doc = fitz.open(stream=file_bytes, filetype="pdf")
-        # Sadece ilk 3 sayfayı oku (DOI genellikle buradadır)
-        search_text = ""
-        for i in range(min(len(doc), 3)):
-            search_text += doc[i].get_text()
-        
-        # DOI Bulma (En hızlı yöntem)
-        doi_match = re.search(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', search_text, re.I)
-        if doi_match:
-            data = fetch_metadata(doi_match.group().strip("/"))
-            if data: return data[0], data[1], data[2], f"DOI: {doi_match.group()}"
-        
-        # Metadata Kontrolü
-        if doc.metadata.get("title"):
-            return doc.metadata["title"], doc.metadata.get("author", "Anonim"), 2026, filename
-        
-        # İlk satırı başlık al (Protokol/Deney dosyaları için)
-        lines = [l.strip() for l in search_text.split('\n') if len(l.strip()) > 10]
-        return (lines[0], "Doküman", 2026, filename) if lines else (filename, "Dosya", 2026, filename)
-    except: return filename, "Hata", 2026, filename
-
-# 4. ARAYÜZ
-st.title("⚡ Citemate AI v8.5")
-style = st.selectbox("Format:", ["Vancouver", "APA 7th", "IEEE", "Harvard"])
-
-c1, c2 = st.columns([4, 6])
-
-with c1:
-    st.header("📥 Hızlı Yükle")
-    # Dosya boyutu uyarısı
-    st.caption("Not: 5MB altındaki PDF'ler daha hızlı işlenir.")
-    pdf_file = st.file_uploader("PDF Seçin", type="pdf")
-    
-    if pdf_file:
-        # Spinner (yükleniyor simgesi) sadece işlem sırasında görünür
-        if st.button("Hızlı Analiz Et"):
-            with st.spinner("AI Dosyayı okuyor..."):
-                t, a, y, src = fast_process_pdf(pdf_file.read(), pdf_file.name)
-                st.session_state.refs.append({"title": t, "author": a, "year": y, "url": src})
-                st.rerun()
-
-with c2:
-    tab_bib, tab_intext = st.tabs(["📋 Kaynakça", "🖋️ Metin İçi"])
-    if st.session_state.refs:
-        with tab_bib:
-            for i, r in enumerate(st.session_state.refs, 1):
-                cite = f"{i}. {r['author']}. {r['title']}. ({r['year']}). {r['url']}" if style == "Vancouver" else f"{r['author']} ({r['year']}). {r['title']}. {r['url']}"
-                st.code(cite)
-        with tab_intext:
-            for i, r in enumerate(st.session_state.refs, 1):
-                intext = f"({i})" if style == "Vancouver" else f"({r['author']}, {r['year']})"
-                st.markdown(f"**{r['title'][:50]}...** → `{intext}`")
-        
-        if st.button("🗑️ Temizle"):
-            st.session_state.refs = []
-            st.rerun()
+        st.info("Henüz kaynak eklenmedi.")
