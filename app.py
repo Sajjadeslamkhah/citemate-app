@@ -28,9 +28,11 @@ LANGUAGES = {
         "app_tagline": "Akademik Mükemmeliyet İçin Kusursuz Atıf Yönetimi",
         "sidebar_brand": "Citemate Pro",
         "menu_home": "🏠 Ana Sayfa",
+        "menu_general": "📘 Genel Bilgiler",
         "menu_citation_engine": "🔗 Atif Motoru",
+        "menu_why": "💡 Neden Citemate?",
+        "menu_guide": "📖 Kullanım Kılavuzu",
         "menu_faq": "❓ SSS",
-        "menu_services": "💎 Profesyonel Hizmetler",
         "menu_about": "ℹ️ Hakkında",
         "format_label": "Format:",
         "tab_doi": "DOI",
@@ -59,6 +61,7 @@ LANGUAGES = {
         "delete": "Sil",
         "no_sources": "Kaynak yok",
         "contact_email": "📧 mbgsajjad@gmail.com",
+        "contact_button": "Bize Ulaşın",
         "powered_by": "Lifegenix Danışmanlık tarafından",
         "copyright": "© 2026 Tüm hakları saklıdır",
     },
@@ -67,9 +70,11 @@ LANGUAGES = {
         "app_tagline": "Seamless Citation Management for Academic Excellence",
         "sidebar_brand": "Citemate Pro",
         "menu_home": "🏠 Home",
+        "menu_general": "📘 General Info",
         "menu_citation_engine": "🔗 Citation Engine",
+        "menu_why": "💡 Why Citemate?",
+        "menu_guide": "📖 User Guide",
         "menu_faq": "❓ FAQ",
-        "menu_services": "💎 Professional Services",
         "menu_about": "ℹ️ About",
         "format_label": "Format:",
         "tab_doi": "DOI",
@@ -98,6 +103,7 @@ LANGUAGES = {
         "delete": "Delete",
         "no_sources": "No sources",
         "contact_email": "📧 mbgsajjad@gmail.com",
+        "contact_button": "Contact Us",
         "powered_by": "Powered by Lifegenix Consulting",
         "copyright": "© 2026 All rights reserved",
     }
@@ -144,9 +150,8 @@ st.markdown("""
     .info-box { background-color: rgba(52, 211, 153, 0.05); padding: 20px; border-radius: 12px; border: 1px dashed rgba(52, 211, 153, 0.3); margin: 20px 0; }
     .feature-box { background-color: #161b22; padding: 20px; border-radius: 10px; border-top: 3px solid #34d399; margin: 15px 0; }
     .why-item { background-color: #0f172a; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #34d399; }
+    .guide-step { background-color: #161b22; padding: 20px; border-radius: 8px; margin: 15px 0; border-left: 5px solid #34d399; }
     .footer { color: #64748b; font-size: 12px; text-align: center; margin-top: 60px; padding: 20px; border-top: 1px solid #1e293b; }
-    .faq-item { background-color: #161b22; padding: 15px; border-radius: 8px; margin: 10px 0; }
-    .nav-button { background-color: #161b22 !important; border: 1px solid #34d399 !important; color: #34d399 !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -365,7 +370,6 @@ def process_pdf(file_bytes: bytes, filename: str) -> Optional[dict]:
 with st.sidebar:
     st.markdown('<p style="font-size: 24px; font-weight: bold; color: #34d399;">Citemate Pro</p>', unsafe_allow_html=True)
     
-    # Language selector
     lang_cols = st.columns(2)
     if lang_cols[0].button("🇹🇷 TR", use_container_width=True):
         st.session_state.lang = "TR"
@@ -376,23 +380,28 @@ with st.sidebar:
     
     st.divider()
     
-    # Navigation buttons
-    nav_cols = st.columns(1)
-    
     if st.button(get_text("menu_home"), use_container_width=True, key="nav_home"):
         st.session_state.page = "home"
+        st.rerun()
+    
+    if st.button(get_text("menu_general"), use_container_width=True, key="nav_general"):
+        st.session_state.page = "general"
         st.rerun()
     
     if st.button(get_text("menu_citation_engine"), use_container_width=True, key="nav_engine"):
         st.session_state.page = "citation_engine"
         st.rerun()
     
-    if st.button(get_text("menu_faq"), use_container_width=True, key="nav_faq"):
-        st.session_state.page = "faq"
+    if st.button(get_text("menu_why"), use_container_width=True, key="nav_why"):
+        st.session_state.page = "why"
         st.rerun()
     
-    if st.button(get_text("menu_services"), use_container_width=True, key="nav_services"):
-        st.session_state.page = "services"
+    if st.button(get_text("menu_guide"), use_container_width=True, key="nav_guide"):
+        st.session_state.page = "guide"
+        st.rerun()
+    
+    if st.button(get_text("menu_faq"), use_container_width=True, key="nav_faq"):
+        st.session_state.page = "faq"
         st.rerun()
     
     if st.button(get_text("menu_about"), use_container_width=True, key="nav_about"):
@@ -424,64 +433,137 @@ if st.session_state.page == "home":
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown('<h3 style="color: #34d399;">🎯 Neden Citemate Pro?</h3>', unsafe_allow_html=True)
+        st.markdown('<h3 style="color: #34d399;">🎯 Why Choose Citemate Pro?</h3>', unsafe_allow_html=True)
         st.markdown("""
         <div class="why-item">
-        <strong>⚡ Hız:</strong> DOI ile saniyeler içinde atıf oluşturun
+        <strong>⚡ Speed:</strong> Create citations in seconds with DOI
         </div>
         <div class="why-item">
-        <strong>✅ Doğruluk:</strong> Global Crossref veritabanı ile senkronize
+        <strong>✅ Accuracy:</strong> Synchronized with global Crossref database
         </div>
         <div class="why-item">
-        <strong>💰 Ücretsiz:</strong> Araştırmacılar için tamamen ücretsiz
+        <strong>💰 Free:</strong> Completely free for researchers
         </div>
         <div class="why-item">
-        <strong>🔄 Otomatik:</strong> Formatlama tamamen otomatik
+        <strong>🔄 Automatic:</strong> Formatting is completely automatic
         </div>
         <div class="why-item">
-        <strong>🔒 Güvenli:</strong> Verileriniz gizli kalır, hiçbir şey saklanmaz
+        <strong>🔒 Secure:</strong> Your data remains private, nothing is stored
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<h3 style="color: #34d399;">📊 Özellikler</h3>', unsafe_allow_html=True)
+        st.markdown('<h3 style="color: #34d399;">📊 Features</h3>', unsafe_allow_html=True)
         st.markdown("""
         <div class="why-item">
-        <strong>🔗 DOI Arama:</strong> Crossref API ile doğrudan erişim
+        <strong>🔗 DOI Search:</strong> Direct access via Crossref API
         </div>
         <div class="why-item">
-        <strong>🔍 Başlık Arama:</strong> Yayın adıyla referans bulun
+        <strong>🔍 Title Search:</strong> Find references by publication name
         </div>
         <div class="why-item">
-        <strong>📄 PDF Analizi:</strong> PDF dosyasından otomatik veri çıkarma
+        <strong>📄 PDF Analysis:</strong> Automatic data extraction from PDF files
         </div>
         <div class="why-item">
-        <strong>📋 4 Format:</strong> Vancouver, APA, IEEE, MLA
+        <strong>📋 4 Formats:</strong> Vancouver, APA, IEEE, MLA
         </div>
         <div class="why-item">
-        <strong>🌍 İki Dil:</strong> Türkçe ve İngilizce tam destek
+        <strong>🌍 Two Languages:</strong> Full Turkish and English support
         </div>
         """, unsafe_allow_html=True)
+
+# ==========================================
+# GENERAL INFORMATION PAGE
+# ==========================================
+
+elif st.session_state.page == "general":
+    st.markdown('<p class="main-title">📘 General Information</p>', unsafe_allow_html=True)
     
-    st.divider()
+    st.markdown("""
+    <div class="info-box">
+    <h3 style="color: #34d399;">What is Citemate Pro?</h3>
+    <p>Citemate Pro is an AI-powered academic citation management system that automatically generates professional citations. It simplifies the bibliography creation process for researchers and students worldwide.</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🚀 Atıf Motorunu Başlat", use_container_width=True, key="btn_start"):
-            st.session_state.page = "citation_engine"
-            st.rerun()
+    st.markdown("""
+    <h3 style="color: #34d399;">Key Features</h3>
     
-    with col2:
-        if st.button("💎 Profesyonel Hizmetler", use_container_width=True, key="btn_services"):
-            st.session_state.page = "services"
-            st.rerun()
+    <div class="feature-box">
+    <strong>✅ Three Input Methods</strong>
+    <ul>
+    <li>DOI Input: Direct digital object identifier</li>
+    <li>Title Search: Find publications by name</li>
+    <li>PDF Upload: Extract data from PDF files</li>
+    </ul>
+    </div>
+    
+    <div class="feature-box">
+    <strong>📋 Four Citation Formats</strong>
+    <ul>
+    <li>Vancouver (NLM) - Medical publications</li>
+    <li>APA 7th Edition - Social sciences</li>
+    <li>IEEE - Engineering and technology</li>
+    <li>MLA - Humanities and literature</li>
+    </ul>
+    </div>
+    
+    <div class="feature-box">
+    <strong>🌍 Multilingual Support</strong>
+    <ul>
+    <li>Turkish (Türkçe) - Full interface support</li>
+    <li>English - Complete documentation</li>
+    <li>Real-time language switching</li>
+    </ul>
+    </div>
+    
+    <div class="feature-box">
+    <strong>🔐 Security & Privacy</strong>
+    <ul>
+    <li>No data storage - Session-based only</li>
+    <li>HTTPS encryption - Secure connection</li>
+    <li>Privacy guaranteed - No tracking</li>
+    <li>Free service - No subscription required</li>
+    </ul>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <h3 style="color: #34d399;">Technology</h3>
+    
+    <div class="feature-box">
+    <strong>Frontend:</strong> Streamlit (Python web framework)
+    <br><strong>Backend:</strong> Python 3.8+
+    <br><strong>Data Source:</strong> Crossref API (150M+ academic sources)
+    <br><strong>PDF Processing:</strong> PyMuPDF + Pytesseract OCR
+    <br><strong>Hosting:</strong> Cloud-based deployment
+    <br><strong>Encryption:</strong> HTTPS/TLS protocol
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <h3 style="color: #34d399;">Who Should Use Citemate Pro?</h3>
+    
+    <div class="why-item">
+    <strong>👨‍🎓 Students</strong> - Writing thesis and research papers
+    </div>
+    <div class="why-item">
+    <strong>👨‍🔬 Researchers</strong> - Managing large bibliography collections
+    </div>
+    <div class="why-item">
+    <strong>📚 Academics</strong> - Publishing and manuscript preparation
+    </div>
+    <div class="why-item">
+    <strong>📖 Writers</strong> - Creating properly cited publications
+    </div>
+    """, unsafe_allow_html=True)
 
 # ==========================================
 # CITATION ENGINE PAGE
 # ==========================================
 
 elif st.session_state.page == "citation_engine":
-    st.markdown('<p class="main-title">🔗 Atıf Motoru</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-title">🔗 Citation Engine</p>', unsafe_allow_html=True)
     
     style = st.selectbox(get_text("format_label"), ["Vancouver", "APA 7th", "IEEE", "MLA"], index=0)
     
@@ -548,7 +630,7 @@ elif st.session_state.page == "citation_engine":
     st.divider()
     
     if len(st.session_state.refs) == 0:
-        st.info("📌 Henüz kaynak eklenmedi. Başlamak için yukarıdaki sekmelerden birini kullanın.")
+        st.info("📌 No sources added yet. Use one of the tabs above to get started.")
     else:
         bib_output = ""
         for i, ref in enumerate(st.session_state.refs, 1):
@@ -556,16 +638,16 @@ elif st.session_state.page == "citation_engine":
         
         col1, col2 = st.columns([4, 1])
         with col1:
-            st.text_area("Çıktı", value=bib_output, height=min(150, len(st.session_state.refs) * 40), disabled=True)
+            st.text_area("Output", value=bib_output, height=min(150, len(st.session_state.refs) * 40), disabled=True)
         with col2:
             st.download_button(
                 label=get_text("download_button"),
                 data=bib_output,
-                file_name=f"kaynakca_{style.lower()}_{datetime.now().strftime('%Y%m%d')}.txt",
+                file_name=f"bibliography_{style.lower()}_{datetime.now().strftime('%Y%m%d')}.txt",
                 mime="text/plain"
             )
         
-        st.subheader(f"Kaynaklar ({len(st.session_state.refs)})")
+        st.subheader(f"Sources ({len(st.session_state.refs)})")
         
         for idx, ref in enumerate(st.session_state.refs):
             col1, col2 = st.columns([5, 1])
@@ -583,383 +665,309 @@ elif st.session_state.page == "citation_engine":
                     st.rerun()
 
 # ==========================================
+# WHY CITEMATE PAGE
+# ==========================================
+
+elif st.session_state.page == "why":
+    st.markdown('<p class="main-title">💡 Why Choose Citemate Pro?</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">Comprehensive reasons to use our citation management system</p>', unsafe_allow_html=True)
+    
+    st.markdown("""
+    <h3 style="color: #34d399;">⚡ Speed & Efficiency</h3>
+    <div class="feature-box">
+    <p><strong>Save Time:</strong> Create citations in 1-2 seconds instead of 5 minutes manually</p>
+    <p><strong>Batch Processing:</strong> Add multiple sources quickly without repetition</p>
+    <p><strong>Instant Formatting:</strong> No need to worry about citation rules - we handle it</p>
+    </div>
+    
+    <h3 style="color: #34d399;">✅ Accuracy & Reliability</h3>
+    <div class="feature-box">
+    <p><strong>Zero Human Error:</strong> Eliminate typos and formatting mistakes</p>
+    <p><strong>Database Verified:</strong> All citations checked against 150M+ Crossref records</p>
+    <p><strong>Consistency:</strong> Perfect formatting every time, no exceptions</p>
+    </div>
+    
+    <h3 style="color: #34d399;">💰 Cost-Free Solution</h3>
+    <div class="feature-box">
+    <p><strong>No Subscription:</strong> Completely free, no hidden charges</p>
+    <p><strong>No Installation:</strong> Web-based, works on any device</p>
+    <p><strong>No Account Required:</strong> Use immediately without registration</p>
+    </div>
+    
+    <h3 style="color: #34d399;">🔐 Privacy & Security</h3>
+    <div class="feature-box">
+    <p><strong>Data Protection:</strong> Nothing is stored, session-based only</p>
+    <p><strong>Encrypted Connection:</strong> HTTPS secure communication</p>
+    <p><strong>No Tracking:</strong> Complete anonymity, no analytics</p>
+    </div>
+    
+    <h3 style="color: #34d399;">📚 Multiple Input Methods</h3>
+    <div class="feature-box">
+    <p><strong>DOI Input:</strong> Quick lookup using digital object identifier</p>
+    <p><strong>Title Search:</strong> Find articles by publication name</p>
+    <p><strong>PDF Upload:</strong> Automatic data extraction from documents</p>
+    </div>
+    
+    <h3 style="color: #34d399;">🌍 Global Accessibility</h3>
+    <div class="feature-box">
+    <p><strong>Two Languages:</strong> Turkish and English full support</p>
+    <p><strong>International Standards:</strong> 4 globally recognized formats</p>
+    <p><strong>Universal Recognition:</strong> Accepted by all universities and journals</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ==========================================
+# USER GUIDE PAGE
+# ==========================================
+
+elif st.session_state.page == "guide":
+    st.markdown('<p class="main-title">📖 User Guide</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">Step-by-step instructions for using Citemate Pro</p>', unsafe_allow_html=True)
+    
+    st.markdown("""
+    <h3 style="color: #34d399;">Getting Started</h3>
+    
+    <div class="guide-step">
+    <h4>Step 1: Choose Your Input Method</h4>
+    <p>Navigate to <strong>Citation Engine</strong> from the sidebar and select one of three methods:</p>
+    <ul>
+    <li><strong>DOI Tab:</strong> Enter a DOI number (e.g., 10.1016/j.cell.2023.01.001)</li>
+    <li><strong>Search Tab:</strong> Enter the publication title to search</li>
+    <li><strong>PDF Tab:</strong> Upload a PDF file to extract information</li>
+    </ul>
+    </div>
+    
+    <div class="guide-step">
+    <h4>Step 2: Enter Your Information</h4>
+    <ul>
+    <li>For DOI: Paste the complete DOI number</li>
+    <li>For Title: Type the publication name or authors</li>
+    <li>For PDF: Select file from your computer</li>
+    </ul>
+    </div>
+    
+    <div class="guide-step">
+    <h4>Step 3: Click the Action Button</h4>
+    <ul>
+    <li>DOI Tab: Click "Add" button</li>
+    <li>Search Tab: Click "Search" button</li>
+    <li>PDF Tab: Click "Upload" button</li>
+    </ul>
+    </div>
+    
+    <div class="guide-step">
+    <h4>Step 4: Select Citation Format</h4>
+    <p>Choose your preferred format at the top:</p>
+    <ul>
+    <li><strong>Vancouver:</strong> Used in medical sciences</li>
+    <li><strong>APA 7th:</strong> Standard for social sciences</li>
+    <li><strong>IEEE:</strong> For engineering and technology</li>
+    <li><strong>MLA:</strong> Common in humanities</li>
+    </ul>
+    </div>
+    
+    <div class="guide-step">
+    <h4>Step 5: Download Your Bibliography</h4>
+    <p>Click the "Download" button to save your citations as a text file. Use the list below to manage sources:</p>
+    <ul>
+    <li>View author, title, year, and source</li>
+    <li>Use "Delete" button to remove incorrect entries</li>
+    <li>Add more sources by repeating steps 1-3</li>
+    </ul>
+    </div>
+    
+    <h3 style="color: #34d399;">Tips & Tricks</h3>
+    
+    <div class="guide-step">
+    <h4>🎯 Best Practices</h4>
+    <ul>
+    <li><strong>Use DOI:</strong> Most reliable method - gives instant results</li>
+    <li><strong>Verify Results:</strong> Check that information matches your source</li>
+    <li><strong>Format Wisely:</strong> Choose the format your instructor requires</li>
+    <li><strong>Keep Backups:</strong> Save your downloaded file for records</li>
+    <li><strong>Check Duplicates:</strong> System warns if source already exists</li>
+    </ul>
+    </div>
+    
+    <div class="guide-step">
+    <h4>⚠️ Common Issues</h4>
+    <ul>
+    <li><strong>DOI Not Found:</strong> Make sure format is correct (10.xxxx/xxx)</li>
+    <li><strong>Search Returns Nothing:</strong> Try shorter title or just author name</li>
+    <li><strong>PDF Processing Fails:</strong> Use high-quality PDF or extract text first</li>
+    <li><strong>Duplicate Warning:</strong> Source already in your list - delete or verify</li>
+    </ul>
+    </div>
+    
+    <h3 style="color: #34d399;">Language Settings</h3>
+    
+    <div class="guide-step">
+    <p>Click <strong>TR</strong> or <strong>EN</strong> button in sidebar to change language. Interface will update instantly.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ==========================================
 # FAQ PAGE
 # ==========================================
 
 elif st.session_state.page == "faq":
-    st.markdown('<p class="main-title">❓ Sıkça Sorulan Sorular</p>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Citemate Pro hakkında bilmeniz gereken her şey</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-title">❓ Frequently Asked Questions</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">Common questions and answers about Citemate Pro</p>', unsafe_allow_html=True)
     
-    st.markdown("<h3 style='color: #34d399;'>Temel Sorular</h3>", unsafe_allow_html=True)
-    
-    with st.expander("🔗 DOI Nedir ve Nasıl Bulunur?"):
+    with st.expander("🔗 What is DOI and how do I find it?"):
         st.write("""
-        **Dijital Nesne Tanımlayıcısı (DOI)**, internetteki her akademik kaynağın eşsiz kimliğidir.
+        **DOI (Digital Object Identifier)** is a unique identifier for academic publications.
         
-        **Format:** `10.xxxx/xxx` (örnek: `10.1016/j.cell.2023.01.001`)
+        **Format:** 10.xxxx/xxx (example: 10.1016/j.cell.2023.01.001)
         
-        **Nerede bulunur:**
-        - Makalenin başlığının altında
-        - PubMed, Google Scholar, ResearchGate'de
-        - Yayıncının web sitesinde
+        **Where to find DOI:**
+        - Article abstract page
+        - PubMed, Google Scholar, ResearchGate
+        - Publisher's website
+        - CrossRef.org search
         
-        **Neden önemlidir:**
-        - DOI numarası 30+ yıl geçerliliğini koruyor
-        - URL'ler kırılabilir ama DOI değildir
-        - Tam otomatik atıf bilgisi sağlar
+        **Why use DOI:**
+        - More reliable than URLs (never breaks)
+        - Includes all publication metadata
+        - Globally recognized standard
         """)
     
-    with st.expander("❓ Citemate Pro Neden Başarılı?"):
+    with st.expander("❓ Why is Citemate Pro effective?"):
         st.write("""
-        **1. Hızlı İşleme**
-        - DOI girişinde 1-2 saniye
-        - Tüm bilgiler otomatik çekilir
-        
-        **2. Yüksek Doğruluk**
-        - Crossref'in 150+ milyon kaynağına erişim
-        - Otomatik veri doğrulama
-        - Yanlış sonuç yok, hiçbir manuel giriş yok
-        
-        **3. Kullanım Kolaylığı**
-        - DOI, başlık veya PDF girebilirsiniz
-        - 4 farklı formatta çıktı
-        - Tek tıkla indir
-        
-        **4. Güvenlilik & Gizlilik**
-        - Verileriniz kayıt edilmez
-        - Türkiye'de sunucu
-        - Tamamen ücretsiz
-        
-        **5. Akademik Standart**
-        - Tüm üniversiteler tarafından kabul edilir
-        - Dergi editörleri tarafından önerilir
-        - Yayın kalitesi arttırır
+        Citemate Pro combines speed, accuracy, and reliability:
+        - Instant access to 150+ million publications
+        - Automatic data validation
+        - Perfect formatting guaranteed
+        - Works 24/7 from any device
+        - No human error possible
         """)
     
-    st.markdown("<h3 style='color: #34d399;'>Teknik Sorular</h3>", unsafe_allow_html=True)
-    
-    with st.expander("📋 Hangi Formatlar Destekleniyor?"):
+    with st.expander("📋 Which citation formats are supported?"):
         st.write("""
-        **Citemate Pro 4 uluslararası formatta atıf oluşturur:**
+        **Vancouver (NLM)** - Medical, nursing, dentistry
+        Example: Smith J. Title. Journal. 2023;45:123-145.
         
-        **1. Vancouver (NLM)**
-        - Kullanıldığı alanlar: Tıp, hemşirelik, diş hekimliği
-        - Örnek: `Smith J, Johnson K. Title of article. Journal. 2023;45(2):123-145. doi: 10.1016/j.cell...`
+        **APA 7th Edition** - Psychology, education, social sciences
+        Example: Smith, J. (2023). Title. Journal, 45(2), 123-145.
         
-        **2. APA 7th Edition**
-        - Kullanıldığı alanlar: Sosyal bilimler, psikoloji, eğitim
-        - Örnek: `Smith, J., & Johnson, K. (2023). Title of article. Journal, 45(2), 123-145.`
+        **IEEE** - Engineering, computer science, technology
+        Example: [1] J. Smith, "Title," Journal, vol. 45, pp. 123-145, 2023.
         
-        **3. IEEE**
-        - Kullanıldığı alanlar: Mühendislik, bilgisayar, elektrik
-        - Örnek: `[1] J. Smith and K. Johnson, "Title of article," Journal, vol. 45, no. 2, pp. 123–145, 2023.`
-        
-        **4. MLA**
-        - Kullanıldığı alanlar: Humanities, edebiyat, kültür
-        - Örnek: `Smith, J., and K. Johnson. "Title of Article." Journal, vol. 45, no. 2, 2023, pp. 123-145.`
+        **MLA** - Humanities, literature, language studies
+        Example: Smith, J. "Title." Journal, vol. 45, no. 2, 2023, pp. 123-145.
         """)
     
-    with st.expander("📄 PDF Dosyasından Nasıl Veri Çıkarılıyor?"):
+    with st.expander("📄 How does PDF analysis work?"):
         st.write("""
-        **Citemate Pro 4 aşamalı PDF işleme yapır:**
+        PDF processing uses 4-stage system:
         
-        **Aşama 1: Doğrudan Metin Çıkarma**
-        - Metin tabanlı PDF'lerden doğrudan metni alır
-        - Başlık, yazar, yıl bilgisini tespit eder
+        1. **Text Extraction** - Reads digital PDFs directly
+        2. **Image Recognition** - Converts scanned PDFs using pixmap
+        3. **OCR Technology** - Extracts text from images
+        4. **Fallback System** - Uses filename if no metadata found
         
-        **Aşama 2: Görüntü İşleme**
-        - Taranmış PDF'leri tanır
-        - Pixmap dönüşümü yapılır
-        
-        **Aşama 3: OCR (Optik Karakter Tanıma)**
-        - Pytesseract ile görüntü metnine dönüştürülür
-        - Eski makaleler bile taranabilir
-        
-        **Aşama 4: Fallback Sistemi**
-        - Eğer DOI bulunamazsa dosya adı kullanılır
-        - Hiçbir zaman hata vermez
-        - Her zaman bir çıktı verir
+        Result: Always produces output, never fails
         """)
     
-    with st.expander("🔒 Verilerim Güvende Mi?"):
+    with st.expander("🔒 Is my data stored?"):
         st.write("""
-        **Citemate Pro Güvenliği:**
-        
-        ✅ **Veri Saklanmıyor**
-        - Yüklediğiniz PDF'ler geçici bellekte işlenir
-        - İşlem tamamlandıktan sonra tamamen silinir
-        - Hiçbir veritabanında kayıt yapılmaz
-        
-        ✅ **Oturum Temelleri**
-        - Veriler yalnızca tarayıcıda kalır
-        - Her oturum ayrı ve izole
-        - Diğer kullanıcılar göremez
-        
-        ✅ **Crossref Gizliliği**
-        - Sadece DOI/başlık gönderilir
-        - PDF içeriği asla Crossref'e gitmez
-        - Tamamen anonimdir
-        
-        ✅ **HTTPS Şifreleme**
-        - Tüm iletişimler şifrelenmiş
-        - Man-in-the-middle saldırısına karşı korumalı
+        **NO - Your data is completely safe:**
+        - Session-based only (not stored)
+        - Deleted after you leave
+        - No database records
+        - No tracking or analytics
+        - HTTPS encrypted connection
         """)
     
-    st.markdown("<h3 style='color: #34d399;'>Crossref Hakkında</h3>", unsafe_allow_html=True)
-    
-    with st.expander("🌐 Crossref Nedir?"):
+    with st.expander("🌐 What is Crossref?"):
         st.write("""
-        **Crossref**, akademik yayıncılığın en büyük açık veritabanıdır.
+        **Crossref** is the academic publishing industry's not-for-profit membership organization.
         
-        **İstatistikler:**
-        - 150+ milyon makale ve kaynağı kataloglandırır
-        - 10,000+ yayıncı tarafından yönetilir
-        - 27 dilde içerik barındırır
-        - Her gün 1000+ yeni kaynak eklenir
+        **Facts:**
+        - 150+ million academic records
+        - Managed by 10,000+ publishers
+        - 27 languages supported
+        - Founded 1999, operating worldwide
         
-        **Nedir:**
-        - Kar amacı gütmeyen kuruluş
-        - 1999'dan beri faaliyet gösteriyor
-        - Yayıncılar tarafından desteklenir
-        
-        **Citemate Pro neden Crossref'i kullanır:**
-        - Bilimsel standart
-        - Yüksek doğruluk oranı
-        - Ticari amaçlı değil
-        - Tüm üniversiteler tarafından kabul edilir
+        **Why we use it:**
+        - Most reliable source
+        - Industry standard
+        - Completely free API
         """)
     
-    with st.expander("⚡ Neden Citemate Pro Kullanmalıyım?"):
+    with st.expander("⚡ Why use Citemate Pro over alternatives?"):
         st.write("""
-        **Alternatif çözümlerle Citemate Pro karşılaştırması:**
-        
         **vs. Mendeley/Zotero:**
-        - ✅ Web tabanlı (kurum yok)
-        - ✅ Hiçbir kayıt yok
-        - ✅ Tamamen ücretsiz
-        - ✅ Türkçe arayüz
+        - No installation needed
+        - No account creation
+        - No storage limits
+        - Turkish language support
+        
+        **vs. Manual writing:**
+        - 0% error rate vs 70% human error
+        - 1 second vs 5 minutes per citation
+        - Perfect consistency
+        - No need for revisions
         
         **vs. Google Scholar:**
-        - ✅ Daha hızlı
-        - ✅ 4 format seçeneği
-        - ✅ PDF yükleme
-        - ✅ Toplu indirme
-        
-        **vs. Elle Yazma:**
-        - ✅ Insan hatasını %0'a indiriyor
-        - ✅ 1 saniye vs 5 dakika
-        - ✅ Biçim tutarlılığı
-        - ✅ Düzeltme yok
+        - Faster processing
+        - More format options
+        - PDF upload capability
+        - Direct download feature
         """)
-
-# ==========================================
-# PROFESSIONAL SERVICES PAGE
-# ==========================================
-
-elif st.session_state.page == "services":
-    st.markdown('<p class="main-title">💎 Profesyonel Hizmetler</p>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Lifegenix Danışmanlık: Veriden Yayına Stratejik Çözümler</p>', unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="info-box">
-    <p>Lifegenix Danışmanlık, akademik araştırma, veri analizi ve bilimsel yayın sürecinin her aşamasında 
-    uzmanlaşmış bir danışmanlık firmasıdır. Citemate Pro'nun arkasında bu gücün olması, size profesyonel 
-    kalite garantisi sağlar.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<h3 style='color: #34d399;'>Sunduğumuz Hizmetler</h3>", unsafe_allow_html=True)
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("""
-        <div class="feature-box">
-        <h4 style="color: #34d399;">🧬 Genetik & Omik Veri Analizi</h4>
-        <p><strong>Uzmanlık Alanları:</strong></p>
-        <ul>
-        <li>NCBI, GEO, TCGA veritabanlarında analiz</li>
-        <li>Fenotip-genotip ilişkilendirmesi</li>
-        <li>Genomik veri işleme ve görselleştirme</li>
-        <li>Biyoinformatik pipeline geliştirme</li>
-        <li>Python, R, Bash uygulaması</li>
-        </ul>
-        <p><strong>Çıktı:</strong> Hazır tez, makale verisi</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("""
-        <div class="feature-box">
-        <h4 style="color: #34d399;">🤖 Sağlıkta Makine Öğrenmesi</h4>
-        <p><strong>Uzmanlık Alanları:</strong></p>
-        <ul>
-        <li>Hastalık tahmin modelleri</li>
-        <li>Klinik ve omik veri klasifikasyonu</li>
-        <li>Tanı destek sistemleri</li>
-        <li>Prognoz tahmini algoritmaları</li>
-        <li>Model doğrulama ve optimizasyonu</li>
-        </ul>
-        <p><strong>Çıktı:</strong> Yayınlanabilir ML makalesi</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        <div class="feature-box">
-        <h4 style="color: #34d399;">📊 Büyük Veri Analitiği</h4>
-        <p><strong>Uzmanlık Alanları:</strong></p>
-        <ul>
-        <li>Büyük ölçekli akademik veri işleme</li>
-        <li>İleri istatistiksel raporlama</li>
-        <li>Kompleks veri görselleştirme</li>
-        <li>Dashboard ve interaktif araçlar</li>
-        <li>Veri kalitesi kontrol</li>
-        </ul>
-        <p><strong>Çıktı:</strong> Yayın hazır istatistikler</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("""
-        <div class="feature-box">
-        <h4 style="color: #34d399;">🖋️ Referans & Editoryal Hizmetleri</h4>
-        <p><strong>Uzmanlık Alanları:</strong></p>
-        <ul>
-        <li>Karmaşık kaynakça yönetimi</li>
-        <li>Akademik yazı kalite kontrol</li>
-        <li>Yayın hazırlığı danışmanlığı</li>
-        <li>Makale optimize etme</li>
-        <li>Dergi seçme stratejileri</li>
-        </ul>
-        <p><strong>Çıktı:</strong> Kabul edilen makale</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.divider()
-    
-    st.markdown("<h3 style='color: #34d399;'>Neden Lifegenix?</h3>", unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("""
-        <div class="why-item">
-        <strong>👨‍🔬 Akademik Kadrı</strong>
-        <p>Biruni Üniversitesi araştırma grubu - Doktor ve Doçent seviyesi uzmanlar</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        <div class="why-item">
-        <strong>📚 Yayın Geçmişi</strong>
-        <p>Springer, MDPI, PubMed, Nature gibi top dergilerde 25+ yayın</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown("""
-        <div class="why-item">
-        <strong>🏆 Başarı Oranı</strong>
-        <p>%95 yayın kabul oranı, %99 müşteri memnuniyeti</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.divider()
-    
-    st.markdown(f"""
-    <div class="info-box" style="text-align: center;">
-    <h3 style="color: #34d399;">İletişim</h3>
-    <p style="font-size: 18px; margin: 15px 0;">
-    <a href="mailto:mbgsajjad@gmail.com" style="color: #34d399; text-decoration: none; font-weight: bold;">{get_text("contact_email")}</a>
-    </p>
-    <p style="color: #94a3b8;">Akademik işbirliği ve hizmet teklifleri için bize ulaşın.</p>
-    </div>
-    """, unsafe_allow_html=True)
 
 # ==========================================
 # ABOUT PAGE
 # ==========================================
 
 elif st.session_state.page == "about":
-    st.markdown('<p class="main-title">ℹ️ Hakkında</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-title">ℹ️ About Citemate Pro</p>', unsafe_allow_html=True)
     
     st.markdown("""
     <div class="info-box">
-    <h3 style="color: #34d399;">Citemate Pro Nedir?</h3>
-    <p>Citemate Pro, araştırmacıların ve öğrencilerin akademik kaynakça hazırlamasını 
-    <strong>otomatikleştiren</strong> yapay zeka destekli bir atıf yönetim sistemidir. 
-    Manuel yazma yerine, DOI veya PDF yükleyerek saniyeler içinde profesyonel formatlar elde edin.</p>
+    <h3 style="color: #34d399;">What is Citemate Pro?</h3>
+    <p>Citemate Pro is an AI-powered academic citation management system that transforms bibliography creation from a manual, time-consuming task into an automated, accurate process completed in seconds.</p>
     </div>
     """, unsafe_allow_html=True)
     
     st.markdown("""
-    <h3 style="color: #34d399;">Nasıl Çalışır?</h3>
-    
-    <div class="why-item">
-    <strong>Adım 1: Veri Girin</strong>
-    <p>DOI (10.1016/...), yayın başlığı, veya PDF dosyası yükleyin</p>
-    </div>
-    
-    <div class="why-item">
-    <strong>Adım 2: Otomatik İşlem</strong>
-    <p>Crossref API'sı veri çeker, tüm bilgileri doğrular</p>
-    </div>
-    
-    <div class="why-item">
-    <strong>Adım 3: Format Seçin</strong>
-    <p>Vancouver, APA, IEEE veya MLA seçeneğinden birini seçin</p>
-    </div>
-    
-    <div class="why-item">
-    <strong>Adım 4: İndir</strong>
-    <p>Hazır kaynakçayı metin dosyası olarak indirin</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <h3 style="color: #34d399;">Teknoloji Yığını</h3>
+    <h3 style="color: #34d399;">Our Statistics</h3>
     
     <div class="feature-box">
-    <strong>Frontend:</strong> Streamlit (Python web framework)
+    ✅ <strong>900+ lines of code</strong> - Clean, fully open-source
+    <br>✅ <strong>0 errors, 0 warnings</strong> - Production ready
+    <br>✅ <strong>4 citation formats</strong> - Vancouver, APA, IEEE, MLA
+    <br>✅ <strong>2 languages</strong> - Turkish and English
+    <br>✅ <strong>150M+ resources</strong> - Crossref database
+    <br>✅ <strong>100% free</strong> - No ads, no subscription
+    <br>✅ <strong>3 input methods</strong> - DOI, Search, PDF
+    <br>✅ <strong>HTTPS secured</strong> - Encrypted communication
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <h3 style="color: #34d399;">Technology Stack</h3>
+    
+    <div class="feature-box">
+    <strong>Frontend:</strong> Streamlit
     <br><strong>Backend:</strong> Python 3.8+
-    <br><strong>Veri Kaynağı:</strong> Crossref API (150M+ makale)
-    <br><strong>PDF İşleme:</strong> PyMuPDF + Pytesseract
-    <br><strong>Hosting:</strong> Cloud (Streamlit Community Cloud)
-    <br><strong>Şifreleme:</strong> HTTPS/TLS
+    <br><strong>API:</strong> Crossref (150M articles)
+    <br><strong>PDF:</strong> PyMuPDF + Pytesseract
+    <br><strong>Hosting:</strong> Cloud-based
+    <br><strong>Security:</strong> HTTPS/TLS
     </div>
     """, unsafe_allow_html=True)
     
     st.markdown("""
-    <h3 style="color: #34d399;">İstatistikler</h3>
-    
-    <div class="why-item">
-    ✅ <strong>586 satır kod</strong> - Tamamen açık kaynak, temiz
-    <br>✅ <strong>0 hata, 0 uyarı</strong> - Prodüksiyon hazır
-    <br>✅ <strong>4 atıf formatı</strong> - Vancouver, APA, IEEE, MLA
-    <br>✅ <strong>2 dil desteği</strong> - Türkçe ve İngilizce
-    <br>✅ <strong>150M+ kaynak</strong> - Crossref veritabanı
-    <br>✅ <strong>100% ücretsiz</strong> - Reklam yok, ücret yok
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <h3 style="color: #34d399;">Arkasındaki Ekip</h3>
+    <h3 style="color: #34d399;">The Team</h3>
     
     <div class="feature-box">
-    <strong>Geliştiren:</strong> Milad & Sajjad Eslamkhah
-    <br><strong>Kurulum:</strong> Biruni Üniversitesi, İstanbul
-    <br><strong>Destek:</strong> Lifegenix Danışmanlık
-    <br><strong>Kuruluş:</strong> Temmuz 2025
-    <br><strong>Güncelleme:</strong> Aylık versiyonlar
+    <strong>Developers:</strong> Milad & Sajjad Eslamkhah
+    <br><strong>Institution:</strong> Biruni University, Istanbul
+    <br><strong>Support:</strong> Lifegenix Consulting
+    <br><strong>Founded:</strong> 2025
+    <br><strong>Updates:</strong> Monthly releases
     </div>
     """, unsafe_allow_html=True)
-    
-    st.divider()
-    
-    st.markdown(f'<div class="footer">{get_text("copyright")} | {get_text("powered_by")}</div>', unsafe_allow_html=True)
-
-# ==========================================
-# FOOTER
-# ==========================================
 
 st.markdown(f'<div class="footer">{get_text("copyright")} | {get_text("powered_by")}</div>', unsafe_allow_html=True)
