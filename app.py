@@ -5,7 +5,23 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import fitz  # PyMuPDF
 import urllib.parse
+# Bu bloğu st.set_page_config'in hemen altına ekleyebiliriz
+import streamlit.components.v10 as components
 
+def add_analytics():
+    # Buradaki 'G-XXXXXXXXXX' senin Google Analytics kimliğin olacak
+    ga_code = """
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
+    """
+    components.html(ga_code, height=0)
+
+# add_analytics() # Bu fonksiyonu çağırarak istatistik toplamaya başlarsın
 # 1. SAYFA YAPILANDIRMASI
 st.set_page_config(page_title="Citemate Pro v10.7", page_icon="🎓", layout="wide")
 
