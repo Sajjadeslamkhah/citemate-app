@@ -5,32 +5,36 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import fitz  # PyMuPDF
 import urllib.parse
-# DÜZELTİLEN SATIR: v10 yerine v1 yazıldı
-import streamlit.components.v1 as components
 
 # ==========================================
-# 1. ANALYTICS & SAYFA YAPILANDIRMASI
+# 1. SAYFA YAPILANDIRMASI & ANALYTICS
 # ==========================================
-st.set_page_config(page_title="Citemate Ultimate v10.9", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="Citemate Ultimate v11.0", page_icon="🎓", layout="wide")
 
 def add_analytics():
-    # Buradaki G-XXXXXXXXXX kodunu Google Analytics panelinden alacaksın.
-    ga_code = """
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-XXXXXXXXXX');
-    </script>
+    # 'G-XXXXXXXXXX' kısmına Google Analytics Ölçüm Kimliğini yaz
+    ga_id = "G-XXXXXXXXXX" 
+    
+    # Yeni nesil istatistik gömme yöntemi (iframe uyumlu)
+    ga_code = f"""
+        <iframe src="https://www.googletagmanager.com/ns.html?id={ga_id}"
+                height="0" width="0" style="display:none;visibility:hidden"></iframe>
+        <script async src="https://www.googletagmanager.com/gtag/js?id={ga_id}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){{dataLayer.push(arguments);}}
+            gtag('js', new Date());
+            gtag('config', '{ga_id}');
+        </script>
     """
-    components.html(ga_code, height=0)
+    # Streamlit'in yeni standartlarına uygun iframe kullanımı
+    st.components.v1.html(ga_code, height=0)
 
-# İstatistikleri aktif et
+# İstatistikleri başlat
 add_analytics()
 
 # ==========================================
-# 2. SESSION STATE (HAFIZA)
+# 2. HAFIZA VE DİL SİSTEMİ
 # ==========================================
 if 'lang' not in st.session_state: st.session_state.lang = "Türkçe"
 if 'refs' not in st.session_state: st.session_state.refs = []
@@ -46,7 +50,7 @@ languages = {
         "share_results": "📋 Kaynakçayı Paylaş", "download_btn": "📥 Kaynakçayı İndir (.txt)",
         "wa_share": "WhatsApp", "mail_share": "E-posta",
         "confirm_btn": "✅ Evet, Doğru", "cancel_btn": "❌ Hayır, Yanlış",
-        "footer_msg": "Dünya standartlarında akademik araç."
+        "footer_msg": "Citemate.org - Dünya standartlarında akademik araç."
     },
     "English": {
         "welcome": "Welcome!",
@@ -57,12 +61,12 @@ languages = {
         "share_results": "📋 Share Bibliography", "download_btn": "📥 Download Bibliography (.txt)",
         "wa_share": "WhatsApp", "mail_share": "Email",
         "confirm_btn": "✅ Yes, Correct", "cancel_btn": "❌ No, Wrong",
-        "footer_msg": "World-class academic tool."
+        "footer_msg": "Citemate.org - World-class academic tool."
     }
 }
 
 # ==========================================
-# 3. GÖRSEL TASARIM
+# 3. TASARIM & ÜST PANEL
 # ==========================================
 st.markdown("""
     <style>
@@ -78,19 +82,20 @@ st.markdown("""
 
 col_header, col_lang = st.columns([7, 3])
 with col_header:
-    st.title("🎓 Citemate Pro v10.9")
+    st.title("🎓 Citemate Pro v11.0")
 
 with col_lang:
     st.write("") 
     c1, c2 = st.columns(2)
-    if c1.button("🇹🇷 Türkçe", key="tr_v109"): st.session_state.lang = "Türkçe"; st.rerun()
-    if c2.button("🇺🇸 English", key="en_v109"): st.session_state.lang = "English"; st.rerun()
+    if c1.button("🇹🇷 Türkçe", key="tr_v11"): st.session_state.lang = "Türkçe"; st.rerun()
+    if c2.button("🇺🇸 English", key="en_v11"): st.session_state.lang = "English"; st.rerun()
 
 L = languages[st.session_state.lang]
 
-# ==========================================
-# 4. AKADEMİK MOTOR (API + SCRAPING)
-# ==========================================
+# ( fetch_academic_data ve process_pdf fonksiyonları v10.9 ile aynıdır, hata içermez )
+# ... [Burada önceki sürümdeki veri çekme motoru yer alıyor] ...
+
+# Aradaki fonksiyonları eklemeyi unutma (fetch_academic_data ve process_pdf)
 def fetch_academic_data(query, is_doi=False):
     doi_pattern = r'10\.\d{4,9}/[-._;()/:A-Z0-9]+'
     doi_match = re.search(doi_pattern, query, re.I)
@@ -128,10 +133,10 @@ def process_pdf(file_bytes, filename):
     except: return None
 
 # ==========================================
-# 5. GİRİŞ VE ÇIKTI
+# 5. GİRİŞ VE ÇIKTI ALANI
 # ==========================================
 with st.expander(L["tutorial_title"]): st.info(L["tutorial_text"])
-style = st.selectbox(L["cite_style"], ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"], key="style_v109")
+style = st.selectbox(L["cite_style"], ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"], key="style_v11")
 st.divider()
 
 col_in, col_out = st.columns([4, 6], gap="large")
@@ -141,8 +146,8 @@ with col_in:
     t_doi, t_search, t_pdf = st.tabs([L["tab_doi"], L["tab_search"], L["tab_pdf"]])
     
     with t_doi:
-        doi_in = st.text_input("DOI / URL:", key="doi_v109")
-        if st.button(L["add_btn"], key="btn_doi_v109"):
+        doi_in = st.text_input("DOI / URL:", key="doi_v11")
+        if st.button(L["add_btn"], key="btn_doi_v11"):
             if doi_in.strip():
                 with st.spinner("Analyzing..."):
                     res = fetch_academic_data(doi_in, is_doi=True)
@@ -152,8 +157,8 @@ with col_in:
                         st.warning("Added as link."); st.rerun()
 
     with t_search:
-        title_q = st.text_input(L["tab_search"] + ":", key="q_v109")
-        if st.button("🔍 Search", key="btn_q_v109"):
+        title_q = st.text_input(L["tab_search"] + ":", key="q_v11")
+        if st.button("🔍 Search", key="btn_q_v11"):
             res = fetch_academic_data(title_q, is_doi=False)
             if res: st.session_state.temp_search = res
         if st.session_state.temp_search:
@@ -162,15 +167,15 @@ with col_in:
             st.write(f"{st.session_state.temp_search['author']} ({st.session_state.temp_search['year']})")
             st.markdown('</div>', unsafe_allow_html=True)
             cy, cn = st.columns(2)
-            if cy.button(L["confirm_btn"], key="y_v109"):
+            if cy.button(L["confirm_btn"], key="y_v11"):
                 st.session_state.refs.append(st.session_state.temp_search)
                 st.session_state.temp_search = None; st.rerun()
-            if cn.button(L["cancel_btn"], key="n_v109"):
+            if cn.button(L["cancel_btn"], key="n_v11"):
                 st.session_state.temp_search = None; st.rerun()
 
     with t_pdf:
-        pf = st.file_uploader(L["tab_pdf"], type="pdf", key="pdf_v109")
-        if pf and st.button("📄 Analyze PDF", key="btn_pdf_v109"):
+        pf = st.file_uploader(L["tab_pdf"], type="pdf", key="pdf_v11")
+        if pf and st.button("📄 Analyze PDF", key="btn_pdf_v11"):
             res = process_pdf(pf.read(), pf.name)
             if res: st.session_state.refs.append(res); st.rerun()
 
@@ -198,7 +203,7 @@ with col_out:
         cw, cm = st.columns(2)
         cw.markdown(f'<a href="https://api.whatsapp.com/send?text={encoded_res}" target="_blank" class="share-wa">{L["wa_share"]}</a>', unsafe_allow_html=True)
         cm.markdown(f'<a href="mailto:?subject=Bibliography&body={encoded_res}" class="share-mail">{L["mail_share"]}</a>', unsafe_allow_html=True)
-        if st.button("🗑️ Clear All", key="clear_v109", use_container_width=True):
+        if st.button("🗑️ Clear All", key="clear_v11", use_container_width=True):
             st.session_state.refs = []; st.rerun()
     else: st.info("No sources.")
 
