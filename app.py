@@ -7,9 +7,9 @@ import fitz  # PyMuPDF
 import urllib.parse
 
 # ==========================================
-# 1. SAYFA YAPILANDIRMASI & ANALYTICS
+# 1. SAYFA YAPILANDIRMASI & ANALYTICS (SEO DOĞRULAMA DAHİL)
 # ==========================================
-st.set_page_config(page_title="Citemate Pro", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="Citemate Pro - Ücretsiz Vancouver & APA Atıf Oluşturucu", page_icon="🎓", layout="wide")
 
 def add_analytics():
     # Google Analytics Ölçüm Kimliğin
@@ -18,9 +18,15 @@ def add_analytics():
     # Google Search Console Doğrulama Kodu
     google_verification = '<meta name="google-site-verification" content="PjsiKrJtJ7MoRpZcOG1IK3VZpNh6WMGmMcnk6OIAHfE" />'
     
-    # Google Analytics & SEO Entegrasyonu
+    # Meta Tanımları (Google Arama Sonuçları İçin Görünmez Katman)
+    meta_tags = """
+        <meta name="description" content="Ücretsiz akademik atıf oluşturucu. Vancouver, APA 7, IEEE ve MLA formatlarında DOI veya PDF ile anında kaynakça hazırlayın.">
+        <meta name="keywords" content="vancouver atıf yapma, apa 7 kaynakça oluşturucu, doi atıf motoru, ücretsiz akademik referans aracı">
+    """
+    
     ga_code = f"""
         {google_verification}
+        {meta_tags}
         <iframe src="https://www.googletagmanager.com/ns.html?id={ga_id}"
                 height="0" width="0" style="display:none;visibility:hidden"></iframe>
         <script async src="https://www.googletagmanager.com/gtag/js?id={ga_id}"></script>
@@ -33,7 +39,6 @@ def add_analytics():
     """
     st.components.v1.html(ga_code, height=0)
 
-# İstatistikleri ve SEO Doğrulamayı başlat
 add_analytics()
 
 # ==========================================
@@ -135,7 +140,7 @@ def process_pdf(file_bytes, filename):
     except: return None
 
 # ==========================================
-# 5. ARAYÜZ VE ÇIKTILAR
+# 5. GİRİŞ VE ÇIKTI ALANI
 # ==========================================
 with st.expander(L["tutorial_title"]): st.info(L["tutorial_text"])
 style = st.selectbox(L["cite_style"], ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"], key="style_select")
@@ -208,5 +213,37 @@ with col_out:
         if st.button("🗑️ Tümünü Temizle", key="clear_all_btn", use_container_width=True):
             st.session_state.refs = []; st.rerun()
     else: st.info("Henüz kaynak eklenmedi.")
+
+# ==========================================
+# 6. SEO BİLGİ ALANI & SIKÇA SORULAN SORULAR (YENİ)
+# ==========================================
+st.divider()
+seo_col1, seo_col2 = st.columns(2)
+
+with seo_col1:
+    st.markdown("### 🎓 Citemate Pro Nedir?")
+    st.write("""
+    **Citemate Pro**, araştırmacılar ve öğrenciler için geliştirilmiş **ücretsiz akademik atıf oluşturucu**dur. 
+    Tıp, fen bilimleri ve sosyal bilimler makalelerinde en çok kullanılan **Vancouver formatı**, **APA 7**, 
+    **IEEE** ve **MLA** gibi standartları saniyeler içinde hatasız bir şekilde hazırlar. 
+    """)
+
+with seo_col2:
+    st.markdown("### 🔍 Neden Citemate?")
+    st.write("""
+    * **DOI Desteği:** DOI numarası ile otomatik kaynakça oluşturma.
+    * **PDF Analizi:** PDF dosyasından metadata çıkarma ve atıf yapma.
+    * **Hızlı ve Ücretsiz:** Herhangi bir kayıt gerektirmeden profesyonel sonuçlar.
+    """)
+
+# SEO için Sıkça Sorulan Sorular Bloğu
+with st.expander("❓ Sıkça Sorulan Sorular (Atıf Rehberi)"):
+    st.markdown("""
+    **1. Vancouver atıf formatı nedir ve nasıl yapılır?** Vancouver stili, tıp ve fen bilimlerinde kullanılan numaralandırma sistemidir. Citemate ile DOI numarasını girip formatı seçerek Vancouver atıfınızı anında oluşturabilirsiniz.
+    
+    **2. DOI numarası ile kaynakça nasıl hazırlanır?** Arama kısmına makalenin DOI numarasını yapıştırın, sistem akademik veri tabanlarından makale bilgilerini çekerek seçtiğiniz (APA, IEEE vb.) stilde kaynakçayı hazırlar.
+    
+    **3. PDF dosyalarından atıf oluşturulabilir mi?** Evet, PDF sekmesinden makalenizi yüklediğinizde, motorumuz makalenin içindeki DOI veya başlık bilgilerini analiz ederek otomatik referans sağlar.
+    """)
 
 st.markdown(f"--- \n<center><i>{L['footer_msg']}</i></center>", unsafe_allow_html=True)
