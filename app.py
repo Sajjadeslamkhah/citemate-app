@@ -22,9 +22,8 @@ def add_seo():
 add_seo()
 
 # ==========================================
-# 2. HAFIZA BAŞLATMA (KRİTİK HATA ÇÖZÜMÜ)
+# 2. HAFIZA BAŞLATMA
 # ==========================================
-# Hata almamak için tüm değişkenleri en başta tanımlıyoruz
 if 'refs' not in st.session_state:
     st.session_state.refs = []
 
@@ -32,41 +31,41 @@ if 'page' not in st.session_state:
     st.session_state.page = "🏠 Atıf Motoru"
 
 # ==========================================
-# 3. TASARIM (PRESTİJ ODAKLI)
+# 3. TASARIM VE İLETİŞİM AYARI
 # ==========================================
-st.markdown("""
+# Senin e-posta adresin burada tanımlı:
+MY_EMAIL = "mbgsajjad@gmail.com"
+
+st.markdown(f"""
     <style>
-    .stApp { background-color: #0e1117; }
-    .main-title { font-size: 62px !important; font-weight: 900 !important; color: #34d399; text-shadow: 0px 0px 25px rgba(52, 211, 153, 0.4); margin-bottom: 0px; letter-spacing: -1px; }
-    .sub-title { color: #f8fafc; font-size: 22px; margin-bottom: 45px; font-weight: 300; letter-spacing: 1px; }
-    .sidebar-brand { font-size: 28px !important; font-weight: bold; color: #34d399; margin-bottom: 10px; }
-    .contact-container { background: #1e293b; padding: 18px; border-radius: 15px; margin-top: 25px; border: 1px solid #334155; }
-    .contact-btn { display: block; background: #34d399; color: black !important; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; margin-top: 10px; transition: 0.3s ease; }
-    .contact-btn:hover { background: #10b981; transform: translateY(-2px); }
-    .service-card { background: #161b22; padding: 30px; border-radius: 18px; border-top: 5px solid #34d399; margin-bottom: 25px; }
-    .feature-tag { background: #064e3b; color: #34d399; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-right: 6px; text-transform: uppercase; }
-    .footer { color: #64748b; font-size: 14px; text-align: center; margin-top: 80px; padding: 25px; border-top: 1px solid #1e293b; }
+    .stApp {{ background-color: #0e1117; }}
+    .main-title {{ font-size: 62px !important; font-weight: 900 !important; color: #34d399; text-shadow: 0px 0px 25px rgba(52, 211, 153, 0.4); margin-bottom: 0px; letter-spacing: -1px; }}
+    .sub-title {{ color: #f8fafc; font-size: 22px; margin-bottom: 45px; font-weight: 300; letter-spacing: 1px; }}
+    .sidebar-brand {{ font-size: 28px !important; font-weight: bold; color: #34d399; margin-bottom: 10px; }}
+    .contact-container {{ background: #1e293b; padding: 18px; border-radius: 15px; margin-top: 25px; border: 1px solid #334155; }}
+    .contact-btn {{ display: block; background: #34d399; color: black !important; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; margin-top: 10px; transition: 0.3s ease; }}
+    .contact-btn:hover {{ background: #10b981; transform: translateY(-2px); }}
+    .service-card {{ background: #161b22; padding: 30px; border-radius: 18px; border-top: 5px solid #34d399; margin-bottom: 25px; }}
+    .feature-tag {{ background: #064e3b; color: #34d399; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-right: 6px; text-transform: uppercase; }}
+    .footer {{ color: #64748b; font-size: 14px; text-align: center; margin-top: 80px; padding: 25px; border-top: 1px solid #1e293b; }}
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. YAN MENÜ (BÜTÜNLEŞİK YAPI)
+# 4. YAN MENÜ
 # ==========================================
 with st.sidebar:
     st.markdown('<p class="sidebar-brand">🎓 Citemate Pro</p>', unsafe_allow_html=True)
     st.caption("Elite Academic Solutions | Powered by Lifegenix")
     st.divider()
     
-    # Sayfa Seçimi
-    selection = st.radio("SİSTEM MENÜSÜ", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"], label_visibility="collapsed")
-    st.session_state.page = selection
+    st.session_state.page = st.radio("SİSTEM MENÜSÜ", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"], label_visibility="collapsed")
     
-    # İletişim Bloğu
-    st.markdown("""
+    st.markdown(f"""
         <div class="contact-container">
             <p style="color: #34d399; font-weight: bold; margin-bottom: 5px; font-size: 17px;">📩 Bize Ulaşın</p>
             <p style="color: #94a3b8; font-size: 13px;">Akademik iş birliği ve kurumsal analiz teklifleri için ulaşın.</p>
-            <a href="mailto:iletisim@lifegenix.com" class="contact-btn">✉️ Mesaj Gönder</a>
+            <a href="mailto:{MY_EMAIL}" class="contact-btn">✉️ Mesaj Gönder</a>
         </div>
     """, unsafe_allow_html=True)
     
@@ -83,18 +82,18 @@ def get_cite(query, is_doi=False):
         if res.status_code == 200:
             d = res.json()['message']
             item = d['items'][0] if 'items' in d else d
-            auth = item.get('author', [{'family': 'Anonim'}])[0].get('family')
+            auth = item.get('author', [{{'family': 'Anonim'}}])[0].get('family')
             if len(item.get('author', [])) > 1: auth += " et al."
             year = "2026"
             if 'published-print' in item: year = str(item['published-print']['date-parts'][0][0])
-            return {"title": item.get('title', [''])[0], "author": auth, "year": year, "url": f"https://doi.org/{query}"}
+            return {{"title": item.get('title', [''])[0], "author": auth, "year": year, "url": f"https://doi.org/{{query}}"}}
     except: return None
 
 def process_pdf(file_bytes):
     try:
         doc = fitz.open(stream=file_bytes, filetype="pdf")
         text = "".join([doc[i].get_text() for i in range(min(len(doc), 3))])
-        doi_match = re.search(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', text, re.I)
+        doi_match = re.search(r'10\.\d{{4,9}}/[-._;()/:A-Z0-9]+', text, re.I)
         if doi_match: return get_cite(doi_match.group().strip("/"), is_doi=True)
     except: pass
     return None
@@ -135,15 +134,13 @@ if st.session_state.page == "🏠 Atıf Motoru":
                 st.rerun()
             else: st.warning("Dosyada DOI bulunamadı.")
     
-    # SONUÇ ALANI - HATA KORUMALI
     if len(st.session_state.refs) > 0:
         st.divider()
         txt_out = ""
         for i, r in enumerate(st.session_state.refs, 1):
-            cite = f"{i}. {r['author']}. {r['title']}. {r['year']}." if style == "Vancouver" else f"{r['author']} ({r['year']}). {r['title']}."
+            cite = f"{{i}}. {{r['author']}}. {{r['title']}}. {{r['year']}}." if style == "Vancouver" else f"{{r['author']}} ({{r['year']}}). {{r['title']}}."
             st.code(cite)
             txt_out += cite + "\n"
-        
         st.download_button("📥 Kaynakçayı Dışa Aktar (.txt)", txt_out, use_container_width=True)
         if st.button("🗑️ Tüm Kayıtları Temizle"):
             st.session_state.refs = []
@@ -181,7 +178,4 @@ elif st.session_state.page == "💎 Profesyonel Hizmetler":
         </div>
         """, unsafe_allow_html=True)
 
-# ==========================================
-# 7. FOOTER
-# ==========================================
 st.markdown('<div class="footer">© 2026 Lifegenix Danışmanlık tarafından kurulmuştur. <br> Akademik dürüstlük ve teknolojik üstünlük ilkesiyle.</div>', unsafe_allow_html=True)
