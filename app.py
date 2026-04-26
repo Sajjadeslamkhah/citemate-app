@@ -22,10 +22,14 @@ def add_seo():
 add_seo()
 
 # ==========================================
-# 2. HAFIZA BAŞLATMA
+# 2. HAFIZA BAŞLATMA (KRİTİK HATA ÇÖZÜMÜ)
 # ==========================================
-if 'refs' not in st.session_state: st.session_state.refs = []
-if 'page' not in st.session_state: st.session_state.page = "🏠 Atıf Motoru"
+# Hata almamak için tüm değişkenleri en başta tanımlıyoruz
+if 'refs' not in st.session_state:
+    st.session_state.refs = []
+
+if 'page' not in st.session_state:
+    st.session_state.page = "🏠 Atıf Motoru"
 
 # ==========================================
 # 3. TASARIM (PRESTİJ ODAKLI)
@@ -36,11 +40,10 @@ st.markdown("""
     .main-title { font-size: 62px !important; font-weight: 900 !important; color: #34d399; text-shadow: 0px 0px 25px rgba(52, 211, 153, 0.4); margin-bottom: 0px; letter-spacing: -1px; }
     .sub-title { color: #f8fafc; font-size: 22px; margin-bottom: 45px; font-weight: 300; letter-spacing: 1px; }
     .sidebar-brand { font-size: 28px !important; font-weight: bold; color: #34d399; margin-bottom: 10px; }
-    .contact-container { background: #1e293b; padding: 18px; border-radius: 15px; margin-top: 25px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    .contact-container { background: #1e293b; padding: 18px; border-radius: 15px; margin-top: 25px; border: 1px solid #334155; }
     .contact-btn { display: block; background: #34d399; color: black !important; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; margin-top: 10px; transition: 0.3s ease; }
     .contact-btn:hover { background: #10b981; transform: translateY(-2px); }
-    .service-card { background: #161b22; padding: 30px; border-radius: 18px; border-top: 5px solid #34d399; margin-bottom: 25px; transition: 0.2s; }
-    .service-card:hover { border-color: #10b981; }
+    .service-card { background: #161b22; padding: 30px; border-radius: 18px; border-top: 5px solid #34d399; margin-bottom: 25px; }
     .feature-tag { background: #064e3b; color: #34d399; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-right: 6px; text-transform: uppercase; }
     .footer { color: #64748b; font-size: 14px; text-align: center; margin-top: 80px; padding: 25px; border-top: 1px solid #1e293b; }
     </style>
@@ -54,10 +57,11 @@ with st.sidebar:
     st.caption("Elite Academic Solutions | Powered by Lifegenix")
     st.divider()
     
-    # Navigasyon
-    st.session_state.page = st.radio("SİSTEM MENÜSÜ", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"], label_visibility="collapsed")
+    # Sayfa Seçimi
+    selection = st.radio("SİSTEM MENÜSÜ", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"], label_visibility="collapsed")
+    st.session_state.page = selection
     
-    # Navigasyona Entegre İletişim Bloğu
+    # İletişim Bloğu
     st.markdown("""
         <div class="contact-container">
             <p style="color: #34d399; font-weight: bold; margin-bottom: 5px; font-size: 17px;">📩 Bize Ulaşın</p>
@@ -103,43 +107,47 @@ if st.session_state.page == "🏠 Atıf Motoru":
     st.markdown('<p class="main-title">🎓 Citemate Pro</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Akademik Mükemmeliyet İçin Kusursuz Atıf Yönetimi</p>', unsafe_allow_html=True)
 
-    style = st.selectbox("Tercih Edilen Atıf Standardı:", ["Vancouver", "APA 7th", "IEEE", "MLA"])
+    style = st.selectbox("Tercih Edilen Standard:", ["Vancouver", "APA 7th", "IEEE", "MLA"])
     t1, t2, t3 = st.tabs(["🔗 DOI Entegrasyonu", "🔍 Global Arama", "📄 Akıllı PDF Analizi"])
     
     with t1:
-        doi_in = st.text_input("DOI Numarası:", placeholder="Örn: 10.1016/j.cell.2024...")
-        if st.button("Kaynağı Listeye İşle", key="btn_doi"):
+        doi_in = st.text_input("DOI Numarası:", placeholder="10.1016/j.cell...")
+        if st.button("Kaynağı İşle", key="btn_doi"):
             res = get_cite(doi_in, True)
-            if res: st.session_state.refs.append(res); st.rerun()
+            if res: 
+                st.session_state.refs.append(res)
+                st.rerun()
 
     with t2:
-        q_in = st.text_input("Makale veya Yayın Başlığı:", placeholder="Tam başlık giriniz...")
+        q_in = st.text_input("Yayın Başlığı:", placeholder="Makale adını giriniz...")
         if st.button("Veritabanında Ara", key="btn_q"):
             res = get_cite(q_in, False)
-            if res: st.session_state.refs.append(res); st.rerun()
+            if res: 
+                st.session_state.refs.append(res)
+                st.rerun()
 
     with t3:
-        f = st.file_uploader("PDF Formatındaki Yayını Yükle", type="pdf")
+        f = st.file_uploader("PDF Yükle", type="pdf")
         if f and st.button("Metadataları Çözümle"):
             res = process_pdf(f.read())
-            if res: st.session_state.refs.append(res); st.rerun()
-            else: st.warning("Dosya içerisinde DOI tanımlayıcı bulunamadı.")
+            if res: 
+                st.session_state.refs.append(res)
+                st.rerun()
+            else: st.warning("Dosyada DOI bulunamadı.")
     
-    if st.session_state.refs:
+    # SONUÇ ALANI - HATA KORUMALI
+    if len(st.session_state.refs) > 0:
         st.divider()
         txt_out = ""
         for i, r in enumerate(st.session_state.refs, 1):
             cite = f"{i}. {r['author']}. {r['title']}. {r['year']}." if style == "Vancouver" else f"{r['author']} ({r['year']}). {r['title']}."
             st.code(cite)
             txt_out += cite + "\n"
+        
         st.download_button("📥 Kaynakçayı Dışa Aktar (.txt)", txt_out, use_container_width=True)
-        if st.button("🗑️ Tüm Kayıtları Temizle"): st.session_state.refs = []; st.rerun()
-
-    # REHBER BÖLÜMÜ
-    st.divider()
-    with st.expander("📚 Atıf Yönetim Rehberi"):
-        st.write("**Neden Citemate Pro?** Global akademik veritabanlarıyla anlık senkronize çalışarak hata payını sıfıra indirir.")
-        st.write("**Doğruluk Oranı:** Tüm çekilen veriler Crossref ve Metadata standartlarına uygundur.")
+        if st.button("🗑️ Tüm Kayıtları Temizle"):
+            st.session_state.refs = []
+            st.rerun()
 
 elif st.session_state.page == "💎 Profesyonel Hizmetler":
     st.markdown('<p class="main-title">Profesyonel Hizmetler</p>', unsafe_allow_html=True)
@@ -155,7 +163,7 @@ elif st.session_state.page == "💎 Profesyonel Hizmetler":
         </div>
         <div class="service-card">
             <h3>🤖 Sağlıkta Makine Öğrenimi</h3>
-            <p>Klinik ve omik veriler kullanılarak geliştirilen hastalık tahmin, sınıflandırma ve yapay zeka modelleri.</p>
+            <p>Klinik ve omik veriler kullanılarak geliştirilen hastalık tahmin ve yapay zeka modelleri.</p>
             <span class="feature-tag">Python</span><span class="feature-tag">ML / AI</span>
         </div>
         """, unsafe_allow_html=True)
@@ -163,12 +171,12 @@ elif st.session_state.page == "💎 Profesyonel Hizmetler":
         st.markdown(f"""
         <div class="service-card">
             <h3>📊 Büyük Veri Analitiği</h3>
-            <p>Büyük ölçekli akademik verilerin Python tabanlı ileri istatistiksel raporlanması ve görselleştirilmesi.</p>
-            <span class="feature-tag">Big Data Analytics</span><span class="feature-tag">Python</span>
+            <p>Büyük ölçekli akademik verilerin Python tabanlı ileri istatistiksel raporlanması.</p>
+            <span class="feature-tag">Big Data</span><span class="feature-tag">Python</span>
         </div>
         <div class="service-card">
             <h3>🖋️ Referans Yazımı & Editoryal</h3>
-            <p>Karmaşık makale ve tezlerin referans yönetiminin Lifegenix uzmanlığıyla yüksek standartta düzenlenmesi.</p>
+            <p>Karmaşık yayınların referans yönetiminin Lifegenix uzmanlığıyla yüksek standartta düzenlenmesi.</p>
             <span class="feature-tag">Editorial Review</span>
         </div>
         """, unsafe_allow_html=True)
