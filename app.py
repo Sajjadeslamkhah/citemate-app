@@ -2,13 +2,10 @@ import streamlit as st
 import requests
 import re
 from datetime import datetime
-from urllib.parse import urlparse
 import fitz  # PyMuPDF
 
-# ============================================================================
-# 1. PAGE CONFIGURATION & STYLING
-# ============================================================================
-st.set_page_config(page_title="Citemate Pro v9.1", page_icon="🎓", layout="wide")
+# 1. SAYFA AYARLARI
+st.set_page_config(page_title="Citemate Pro v9.2", page_icon="🎓", layout="wide")
 
 st.markdown("""
     <style>
@@ -21,35 +18,39 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# ============================================================================
 # 2. SESSION STATE
-# ============================================================================
 if 'refs' not in st.session_state: st.session_state.refs = []
 if 'temp_search' not in st.session_state: st.session_state.temp_search = None
 
-# ============================================================================
-# 3. CORE FUNCTIONS (CLAUDE'S LOGIC + SEARCH)
-# ============================================================================
+# 3. GÜVENLİ VERİ ÇEKME FONKSİYONLARI
 def fetch_crossref(query, is_doi=False):
     url = f"https://api.crossref.org/works/{query}" if is_doi else f"https://api.crossref.org/works?query={query}&rows=1"
     try:
         res = requests.get(url, timeout=10)
-        res.raise_for_status()
+        if res.status_code != 200: return None
         data = res.json()['message']
         item = data['items'][0] if 'items' in data else data
         
+        # Verileri güvenli şekilde al (None hatasını önler)
         title = item.get('title', ['Başlık Bulunamadı'])[0]
         authors = item.get('author', [])
-        author_str = authors[0].get('family', 'Anonim') if authors else "Anonim"
-        if len(authors) > 1: author_str += " et al."
         
-        try: year = item.get('created', {}).get('date-parts', [[2026]])[0][0]
-        except: year = 2026
+        author_str = "Anonim"
+        if authors:
+            author_str = authors[0].get('family') or authors[0].get('literal') or "Anonim"
+            if len(authors) > 1: author_str += " et al."
         
+        try:
+            # Farklı tarih formatlarını dene
+            year = item.get('created', {}).get('date-parts', [[2026]])[0][0]
+        except:
+            year = datetime.now().year
+            
         doi = f"https://doi.org/{item.get('DOI')}" if item.get('DOI') else item.get('URL', 'Link Yok')
         
-        return {"title": title, "author": author_str, "year": year, "url": doi}
-    except: return None
+        return {"title": str(title), "author": str(author_str), "year": str(year), "url": str(doi)}
+    except Exception as e:
+        return None
 
 def process_pdf(file_bytes, filename):
     try:
@@ -58,96 +59,79 @@ def process_pdf(file_bytes, filename):
         doi_match = re.search(r'10\.\d{4,}/[^\s\)]+', text, re.I)
         if doi_match:
             return fetch_crossref(doi_match.group().strip("/"), is_doi=True)
-        lines = [l.strip() for l in text.split('\n') if len(l.strip()) > 15]
-        return {"title": lines[0] if lines else filename, "author": "Doküman", "year": 2026, "url": filename}
+        lines = [l.strip() for l in text.split('\n') if len(l.strip()) > 10]
+        return {"title": lines[0] if lines else filename, "author": "Doküman", "year": "2026", "url": filename}
     except: return None
 
-# ============================================================================
-# 4. UI DESIGN
-# ============================================================================
-st.title("🎓 Citemate Pro v9.1")
-st.caption("Claude v9.0 Mimarisi + Gemini Onay Sistemi")
-
-style = st.selectbox("📌 Akademik Format:", ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"], index=0)
+# 4. ARAYÜZ
+st.title("🎓 Citemate Pro v9.2")
+style = st.selectbox("📌 Atıf Formatı:", ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"])
 
 col_in, col_out = st.columns([4, 6], gap="large")
 
 with col_in:
     st.header("📥 Kaynak Ekle")
-    t_search, t_link, t_pdf = st.tabs(["🔍 Başlık ile Ara", "🔗 DOI / Link", "📄 PDF Yükle"])
+    t_search, t_link, t_pdf = st.tabs(["🔍 Başlık", "🔗 DOI/Link", "📄 PDF"])
     
     with t_search:
-        title_q = st.text_input("Makale Adını Yazın:", placeholder="Örn: 3D surgical guides in dentistry")
-        if st.button("🔍 AI ile Bul"):
+        title_q = st.text_input("Makale Adı:", key="q_search")
+        if st.button("🔍 Bul"):
             if title_q.strip():
-                with st.spinner("🔄 Akademik veritabanları taranıyor..."):
-                    res = fetch_crossref(title_q)
-                    if res: st.session_state.temp_search = res
-                    else: st.error("Sonuç bulunamadı.")
-            else: st.warning("Lütfen bir başlık girin.")
+                res = fetch_crossref(title_q)
+                if res: st.session_state.temp_search = res
+                else: st.error("Bulunamadı.")
         
-        # ONAY MEKANİZMASI (Gemini'nin eklediği kısım)
         if st.session_state.temp_search:
             st.markdown('<div class="result-box">', unsafe_allow_html=True)
-            st.markdown(f"### 📚 Bulunan Kaynak")
-            st.markdown(f"**Başlık:** {st.session_state.temp_search['title']}")
-            st.markdown(f"**Yazar:** {st.session_state.temp_search['author']} | **Yıl:** {st.session_state.temp_search['year']}")
+            st.write(f"**Başlık:** {st.session_state.temp_search.get('title')}")
+            st.write(f"**Yazar:** {st.session_state.temp_search.get('author')} | **Yıl:** {st.session_state.temp_search.get('year')}")
             st.markdown('</div>', unsafe_allow_html=True)
-            c1, c2 = st.columns(2)
-            with c1:
-                if st.button("✅ Evet, Doğru", use_container_width=True, type="primary"):
-                    st.session_state.refs.append(st.session_state.temp_search)
-                    st.session_state.temp_search = None
-                    st.rerun()
-            with c2:
-                if st.button("❌ Hayır, Yanlış", use_container_width=True):
-                    st.session_state.temp_search = None
-                    st.rerun()
+            if st.button("✅ Onayla"):
+                st.session_state.refs.append(st.session_state.temp_search)
+                st.session_state.temp_search = None
+                st.rerun()
 
     with t_link:
-        url_in = st.text_input("DOI veya URL yapıştırın:")
-        if st.button("➕ Hızlı Ekle", use_container_width=True):
+        url_in = st.text_input("DOI veya URL:")
+        if st.button("➕ Ekle"):
             doi_match = re.search(r'10\.\d{4,}/[^\s\)]+', url_in, re.I)
-            res = fetch_crossref(doi_match.group().strip("/"), is_doi=True) if doi_match else {"title": url_in, "author": "Web", "year": 2026, "url": url_in}
+            res = fetch_crossref(doi_match.group().strip("/"), is_doi=True) if doi_match else {"title": url_in, "author": "Web", "year": "2026", "url": url_in}
             st.session_state.refs.append(res)
             st.rerun()
 
     with t_pdf:
-        pdf_file = st.file_uploader("PDF Sürükleyin", type="pdf")
-        if pdf_file and st.button("📄 PDF Analiz Et", use_container_width=True):
+        pdf_file = st.file_uploader("PDF Yükle", type="pdf")
+        if pdf_file and st.button("📄 Analiz"):
             res = process_pdf(pdf_file.read(), pdf_file.name)
-            if res:
-                st.session_state.refs.append(res)
-                st.rerun()
+            if res: st.session_state.refs.append(res); st.rerun()
 
 with col_out:
-    st.header("📋 Çıktı Paneli")
+    st.header("📋 Kaynakça")
     if st.session_state.refs:
-        tab_bib, tab_intext = st.tabs(["📋 Kaynakça", "🖋️ Metin İçi (In-text)"])
-        
+        tab_bib, tab_intext = st.tabs(["📋 Liste", "🖋️ Metin İçi"])
         all_bib = ""
-        all_intext = ""
-
+        
         with tab_bib:
             for i, r in enumerate(st.session_state.refs, 1):
-                if style == "Vancouver": cite = f"{i}. {r['author']}. {r['title']}. {r['year']}. {r['url']}"
-                elif style == "APA 7th": cite = f"{r['author']} ({r['year']}). {r['title']}. {r['url']}"
-                else: cite = f"[{i}] {r['author']}, \"{r['title']}\", {r['year']}. {r['url']}"
+                # Hata önleyici güvenli veri çekimi (.get)
+                auth = r.get('author', 'Anonim')
+                titl = r.get('title', 'Başlık Yok')
+                year = r.get('year', '2026')
+                link = r.get('url', 'Link Yok')
+                
+                if style == "Vancouver": cite = f"{i}. {auth}. {titl}. {year}. {link}"
+                elif style == "APA 7th": cite = f"{auth} ({year}). {titl}. {link}"
+                else: cite = f"[{i}] {auth}, \"{titl}\", {year}. {link}"
                 
                 st.code(cite)
                 all_bib += cite + "\n\n"
         
         with tab_intext:
             for i, r in enumerate(st.session_state.refs, 1):
-                intext = f"({i})" if style == "Vancouver" else f"({r['author']}, {r['year']})"
-                st.markdown(f"**{r['title'][:50]}...**")
+                intext = f"({i})" if style == "Vancouver" else f"({r.get('author', 'Anonim')}, {r.get('year', '2026')})"
                 st.markdown(f'<div class="intext-box">{intext}</div>', unsafe_allow_html=True)
-                all_intext += intext + " "
-
-        st.divider()
-        st.download_button("📥 Kaynakçayı İndir", data=all_bib, file_name="kaynakca.txt", use_container_width=True)
-        if st.button("🗑️ Tümünü Sil", use_container_width=True):
-            st.session_state.refs = []
-            st.rerun()
+        
+        st.download_button("📥 İndir (.txt)", all_bib, "kaynakca.txt")
+        if st.button("🗑️ Sıfırla"): st.session_state.refs = []; st.rerun()
     else:
-        st.info("Henüz kaynak eklenmedi.")
+        st.info("Kaynak ekleyin.")
