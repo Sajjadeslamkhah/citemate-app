@@ -14,82 +14,82 @@ except ImportError:
     fitz = None
 
 # ==========================================
-# 1. LANGUAGE DICTIONARY (Complete Localization)
+# 1. COMPLETE LANGUAGE DICTIONARY
 # ==========================================
 
 LANGUAGES = {
     "TR": {
-        "app_title": "Citemate Pro | Elite Atıf Zekası",
-        "app_subtitle": "Akademik Mükemmeliyet İçin Kusursuz Atıf Yönetimi",
+        "app_title": "Citemate Pro | Elite Atif Zekasi",
+        "app_subtitle": "Akademik Mukemmeliyet Icin Kusursuz Atif Yonetimi",
         "sidebar_brand": "Citemate Pro",
-        "sidebar_caption": "Elite Akademik Çözümler | Lifegenix Tarafından",
-        "menu_label": "SİSTEM MENÜSÜ",
-        "menu_citation_engine": "🏠 Atıf Motoru",
-        "menu_services": "💎 Profesyonel Hizmetler",
-        "contact_title": "📩 Bize Ulaşın",
-        "contact_desc": "Akademik işbirliği ve kurumsal analiz teklifleri için ulaşın.",
-        "contact_btn": "✉️ Mesaj Gönder",
-        "copyright": "© 2026 Lifegenix Danışmanlık tarafından kurulmuştur. Tüm hakları saklıdır.",
-        "info_text": "Citemate Pro, araştırmacıların ve öğrencilerin kaynakça hazırlama yükünü hafifletmek için tasarlanmış, yapay zeka destekli bir atıf düzenleme motorudur. DOI numarası, yayın başlığı veya doğrudan PDF dosyanızı kullanarak saniyeler içinde hatasız; Vancouver, APA, IEEE ve MLA formatlarında profesyonel referanslar oluşturur. Karmaşık akademik standartları otomatiğe bağlayarak, enerjinizi sadece araştırmanıza odaklamanızı sağlar.",
+        "sidebar_caption": "Elite Akademik Cozumler | Lifegenix Tarafindan",
+        "menu_label": "SISTEM MENUSU",
+        "menu_citation_engine": "Atif Motoru",
+        "menu_services": "Profesyonel Hizmetler",
+        "contact_title": "Bize Ulasin",
+        "contact_desc": "Akademik islbirligi ve kurumsal analiz teklifleri icin bize ulasin.",
+        "contact_btn": "Mesaj Gonder",
+        "copyright": "2026 Lifegenix Danismanlik tarafindan kurulmustur. Tum haklari saklıdir.",
+        "info_text": "Citemate Pro, arastirmacilarin ve ogrencilerin kaynakca hazirlama yukunu hafifletmek icin tasarlandi, yapay zeka destekli bir atif duzenleme motorudur. DOI numarasi, yayin basligi veya dogrudan PDF dosyanizi kullanarak saniyeler icinde hatasiz; Vancouver, APA, IEEE ve MLA formatlarinda profesyonel referanslar olusturur. Karmasik akademik standartlari otomatiğe baglayarak, enerjinizi sadece arastirmaniza odaklamanizi saglar.",
         "format_label": "Tercih Edilen Standard:",
-        "tab_doi": "🔗 DOI Entegrasyonu",
-        "tab_search": "🔍 Global Arama",
-        "tab_pdf": "📄 Akıllı PDF Analizi",
-        "doi_label": "DOI Numarası:",
+        "tab_doi": "DOI Entegrasyonu",
+        "tab_search": "Global Arama",
+        "tab_pdf": "Akilli PDF Analizi",
+        "doi_label": "DOI Numarasi:",
         "doi_placeholder": "10.1016/j.cell...",
-        "doi_button": "Kaynağı İşle",
-        "search_label": "Yayın Başlığı:",
-        "search_placeholder": "Tam başlığı giriniz...",
-        "search_button": "Veritabanında Ara",
-        "pdf_label": "PDF Yükle",
-        "pdf_help": "PDF'den otomatik olarak DOI çıkarılır",
-        "pdf_button": "Metadataları Çözümle",
-        "bibliography_title": "Kaynakça Çıktı",
-        "bibliography_label": "Kaynakça (İndir veya Kopyala):",
-        "download_button": "Kaynakçayı İndir",
+        "doi_button": "Kaynagi Isle",
+        "search_label": "Yayin Basligi:",
+        "search_placeholder": "Tam basligi giriniz...",
+        "search_button": "Veritabaninda Ara",
+        "pdf_label": "PDF Yukle",
+        "pdf_help": "PDFden otomatik olarak DOI cikarilir",
+        "pdf_button": "Metadatalari Cozumle",
+        "bibliography_title": "Kaynakca Cikti",
+        "bibliography_label": "Kaynakca (Indir veya Kopyala):",
+        "download_button": "Kaynakcayi Indir",
         "copy_button": "Kopyala (Ctrl+C)",
-        "clear_button": "Tüm Kayıtları Temizle",
+        "clear_button": "Tum Kayitlari Temizle",
         "confirm_delete": "Eminiz?",
         "sources_title": "Eklenen Kaynaklar",
         "delete_source": "Sil",
-        "faq_title": "Sıkça Sorulan Sorular",
+        "faq_title": "Sikca Sorulan Sorular",
         "faq_doi": "DOI Nedir?",
-        "faq_doi_ans": "Dijital Nesne Tanımlayıcısı (DOI), makalelerin internetteki kalıcı kimliğidir. 10.xxxx/xxx formatındadır.",
+        "faq_doi_ans": "Dijital Nesne Tanimlayicisi (DOI), makalelerin internetteki kalici kimligidir. 10.xxxx/xxx formatindadir.",
         "faq_formats": "Hangi formatlar destekleniyor?",
-        "faq_formats_ans": "Vancouver, APA 7, IEEE ve MLA standartlarını tam uyumlu destekliyoruz.",
-        "faq_pdf": "PDF dosyalarından nasıl veri çıkarılıyor?",
-        "faq_pdf_ans": "PDF'den DOI otomatik olarak çıkarılır ve Crossref veritabanından metadata alınır.",
+        "faq_formats_ans": "Vancouver, APA 7, IEEE ve MLA standartlarini tam uyumlu destekliyoruz.",
+        "faq_pdf": "PDF dosyalarindan nasil veri cikarilior?",
+        "faq_pdf_ans": "PDFden DOI otomatik olarak cikarilir ve Crossref veritabanidan metadata alinir.",
         "why_title": "Neden Citemate Pro?",
-        "why_speed": "Hız: DOI ile saniyeler içinde atıf",
-        "why_accuracy": "Doğruluk: Global Crossref veritabanı ile senkronize",
-        "why_free": "Ücretsiz: Araştırmacılar için tamamen ücretsiz",
+        "why_speed": "Hiz: DOI ile saniyeler icinde atif",
+        "why_accuracy": "Dogruluk: Global Crossref veritabani ile senkronize",
+        "why_free": "Ucretsiz: Arastirmacılar icin tamamen ucretsiz",
         "why_auto": "Otomatik: Formatlama tamamen otomatik",
-        "why_secure": "Güvenli: Verileriniz gizli kalır",
+        "why_secure": "Guvenli: Verileriniz gizli kalır",
         "services_title": "Profesyonel Hizmetler",
-        "services_subtitle": "Lifegenix Danışmanlık: Veriden Yayına Stratejik Çözümler",
+        "services_subtitle": "Lifegenix Danismanlik: Veriden Yayina Stratejik Cozumler",
         "service_genetic": "Genetik Veri Analizi",
-        "service_genetic_desc": "NCBI, GEO ve TCGA büyük veri setlerinin Python tabanlı işlenmesi ve fenotip-genotip ilişkilendirmesi.",
-        "service_ml": "Sağlıkta Makine Öğrenmesi",
-        "service_ml_desc": "Klinik ve omik veriler kullanılarak geliştirilen hastalık tahmin, sınıflandırma ve yapay zeka modelleri.",
-        "service_bigdata": "Büyük Veri Analitiği",
-        "service_bigdata_desc": "Büyük ölçekli akademik verilerin Python tabanlı ileri istatistiksel raporlanması ve görselleştirilmesi.",
-        "service_editorial": "Referans Yazımı & Editoryal",
-        "service_editorial_desc": "Karmaşık yayınların referans yönetiminin Lifegenix uzmanlığıyla yüksek standartta düzenlenmesi.",
-        "error_invalid_doi": "❌ Geçersiz DOI formatı. Örnek: 10.1016/j.cell...",
-        "error_empty_input": "❌ Lütfen bir giriş yapın",
-        "error_invalid_format": "❌ Geçersiz formatı",
-        "error_no_results": "❌ Sonuç bulunamadı",
-        "error_timeout": "⏱️ İstek timeout oldu (10s)",
-        "error_connection": "🌐 Bağlantı hatası - interneti kontrol edin",
-        "error_json": "JSON ayrıştırma hatası",
-        "error_parsing": "Veri ayrıştırma hatası",
-        "error_pdf": "PDF işleme hatası",
-        "error_pymupdf": "📦 PyMuPDF yüklü değil. Çalıştırın: pip install pymupdf",
-        "error_no_doi": "Dosyada DOI tanımlayıcı bulunamadı",
-        "success_added": "✅ Kaynak başarıyla eklendi!",
-        "warning_duplicate": "⚠️ Bu kaynak zaten eklendi!",
-        "warning_copied": "✅ Metin kopyalandı! Ctrl+V ile yapıştır",
-        "warning_cleared": "✅ Tüm kaynaklar silindi",
+        "service_genetic_desc": "NCBI, GEO ve TCGA buyuk veri setlerinin Python tabanli islenmesi ve fenotip-genotip iliskilendirilmesi.",
+        "service_ml": "Saglikta Makine Ogrenmesi",
+        "service_ml_desc": "Klinik ve omik veriler kullanilarak gelistirilen hastalik tahmin, siniflandirma ve yapay zeka modelleri.",
+        "service_bigdata": "Buyuk Veri Analitiği",
+        "service_bigdata_desc": "Buyuk olcekli akademik verilerin Python tabanli ileri istatistiksel raporlanması ve gorsellestirilmesi.",
+        "service_editorial": "Referans Yazimi ve Editoryal",
+        "service_editorial_desc": "Karmasik yayinlarin referans yonetiminin Lifegenix uzmanligi ile yuksek standartta duzenlenmesi.",
+        "error_invalid_doi": "Gecersiz DOI formati. Ornek: 10.1016/j.cell...",
+        "error_empty_input": "Lutfen bir giriş yapin",
+        "error_invalid_format": "Gecersiz formati",
+        "error_no_results": "Sonuc bulunamadi",
+        "error_timeout": "Istek timeout oldu (10s)",
+        "error_connection": "Baglanti hatasi - interneti kontrol edin",
+        "error_json": "JSON ayristirma hatasi",
+        "error_parsing": "Veri ayristirma hatasi",
+        "error_pdf": "PDF isleme hatasi",
+        "error_pymupdf": "PyMuPDF yuklü degil. Calistirin: pip install pymupdf",
+        "error_no_doi": "Dosyada DOI tanimlayici bulunamadi",
+        "success_added": "Kaynak basarıyla eklendi!",
+        "warning_duplicate": "Bu kaynak zaten eklendi!",
+        "warning_copied": "Metin kopyalandi! Ctrl+V ile yapıştır",
+        "warning_cleared": "Tum kaynaklar silindi",
         "searching": "Aranıyor...",
         "reading": "Okunuyor...",
         "analyzing": "Analiz ediliyor...",
@@ -100,17 +100,17 @@ LANGUAGES = {
         "sidebar_brand": "Citemate Pro",
         "sidebar_caption": "Elite Academic Solutions | Powered by Lifegenix",
         "menu_label": "SYSTEM MENU",
-        "menu_citation_engine": "🏠 Citation Engine",
-        "menu_services": "💎 Professional Services",
-        "contact_title": "📩 Contact Us",
+        "menu_citation_engine": "Citation Engine",
+        "menu_services": "Professional Services",
+        "contact_title": "Contact Us",
         "contact_desc": "Reach out for academic collaboration and analysis offers.",
-        "contact_btn": "✉️ Send Message",
-        "copyright": "© 2026 Lifegenix Consulting. All rights reserved.",
+        "contact_btn": "Send Message",
+        "copyright": "2026 Lifegenix Consulting. All rights reserved.",
         "info_text": "Citemate Pro is an AI-powered citation editing engine designed to help researchers and students lighten the burden of bibliography preparation. Using DOI numbers, publication titles, or PDF files directly, it creates flawless professional references in Vancouver, APA, IEEE, and MLA formats within seconds. By automating complex academic standards, it lets you focus your energy solely on your research.",
         "format_label": "Preferred Citation Style:",
-        "tab_doi": "🔗 DOI Integration",
-        "tab_search": "🔍 Global Search",
-        "tab_pdf": "📄 Smart PDF Analysis",
+        "tab_doi": "DOI Integration",
+        "tab_search": "Global Search",
+        "tab_pdf": "Smart PDF Analysis",
         "doi_label": "DOI Number:",
         "doi_placeholder": "10.1016/j.cell...",
         "doi_button": "Process Source",
@@ -149,23 +149,23 @@ LANGUAGES = {
         "service_ml_desc": "Disease prediction, classification, and AI models developed using clinical and omic data.",
         "service_bigdata": "Big Data Analytics",
         "service_bigdata_desc": "Python-based advanced statistical reporting and visualization of large-scale academic data.",
-        "service_editorial": "Reference Writing & Editorial",
+        "service_editorial": "Reference Writing and Editorial",
         "service_editorial_desc": "Reference management of complex publications organized to high standards with Lifegenix expertise.",
-        "error_invalid_doi": "❌ Invalid DOI format. Example: 10.1016/j.cell...",
-        "error_empty_input": "❌ Please provide an input",
-        "error_invalid_format": "❌ Invalid format",
-        "error_no_results": "❌ No results found",
-        "error_timeout": "⏱️ Request timeout (10s)",
-        "error_connection": "🌐 Connection error - check internet",
+        "error_invalid_doi": "Invalid DOI format. Example: 10.1016/j.cell...",
+        "error_empty_input": "Please provide an input",
+        "error_invalid_format": "Invalid format",
+        "error_no_results": "No results found",
+        "error_timeout": "Request timeout (10s)",
+        "error_connection": "Connection error - check internet",
         "error_json": "JSON parsing error",
         "error_parsing": "Data parsing error",
         "error_pdf": "PDF processing error",
-        "error_pymupdf": "📦 PyMuPDF not installed. Run: pip install pymupdf",
+        "error_pymupdf": "PyMuPDF not installed. Run: pip install pymupdf",
         "error_no_doi": "No DOI identifier found in file",
-        "success_added": "✅ Source successfully added!",
-        "warning_duplicate": "⚠️ This source already exists!",
-        "warning_copied": "✅ Text copied! Use Ctrl+V to paste",
-        "warning_cleared": "✅ All sources cleared",
+        "success_added": "Source successfully added!",
+        "warning_duplicate": "This source already exists!",
+        "warning_copied": "Text copied! Use Ctrl+V to paste",
+        "warning_cleared": "All sources cleared",
         "searching": "Searching...",
         "reading": "Reading...",
         "analyzing": "Analyzing...",
@@ -173,7 +173,7 @@ LANGUAGES = {
 }
 
 # ==========================================
-# 2. PAGE CONFIGURATION & SECURITY
+# 2. PAGE CONFIGURATION
 # ==========================================
 
 st.set_page_config(
@@ -189,14 +189,13 @@ def add_seo_safe():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Citemate Pro: Academic citation management and bibliography creation">
-    <meta name="keywords" content="citation, bibliography, vancouver, apa, ieee, mla, academic">
     """
     st.components.v1.html(meta, height=0)
 
 add_seo_safe()
 
 # ==========================================
-# 3. SESSION STATE INITIALIZATION
+# 3. SESSION STATE
 # ==========================================
 
 def init_session_state():
@@ -334,7 +333,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 5. UTILITY FUNCTIONS (Security-Enhanced)
+# 5. UTILITY FUNCTIONS
 # ==========================================
 
 def is_valid_doi(doi_str: str) -> bool:
@@ -472,7 +471,7 @@ def generate_bibliography(refs: list, style: str) -> str:
         return ""
 
 # ==========================================
-# 6. API FUNCTIONS (Security-Enhanced)
+# 6. API FUNCTIONS
 # ==========================================
 
 def get_cite(query: str, is_doi: bool = False) -> Optional[dict]:
@@ -508,7 +507,6 @@ def get_cite(query: str, is_doi: bool = False) -> Optional[dict]:
                 return None
             item = message['items'][0]
         
-        # Extract data safely
         title = None
         if 'title' in item:
             titles = item['title']
@@ -595,7 +593,7 @@ def process_pdf(file_bytes: bytes, filename: str) -> Optional[dict]:
         return None
 
 # ==========================================
-# 7. SIDEBAR NAVIGATION
+# 7. SIDEBAR
 # ==========================================
 
 with st.sidebar:
@@ -603,18 +601,16 @@ with st.sidebar:
     st.caption(get_text("sidebar_caption"))
     st.divider()
     
-    # Language Selection
     lang_cols = st.columns(2)
-    if lang_cols[0].button("🇹🇷 TR", use_container_width=True):
+    if lang_cols[0].button("TR", use_container_width=True):
         st.session_state.lang = "TR"
         st.rerun()
-    if lang_cols[1].button("🇺🇸 EN", use_container_width=True):
+    if lang_cols[1].button("EN", use_container_width=True):
         st.session_state.lang = "EN"
         st.rerun()
     
     st.divider()
     
-    # Navigation
     selection = st.radio(
         get_text("menu_label"),
         ["citation_engine", "services"],
@@ -625,7 +621,6 @@ with st.sidebar:
     
     st.divider()
     
-    # Contact Section
     st.markdown(f"""
         <div class="contact-container">
             <p style="color: #34d399; font-weight: bold; margin-bottom: 5px; font-size: 17px;">{get_text("contact_title")}</p>
@@ -635,17 +630,16 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     st.divider()
-    st.markdown(f"© 2026 **Lifegenix Danişmanlık**<br>{get_text('copyright')}", unsafe_allow_html=True)
+    st.markdown(f"© {get_text('copyright')}", unsafe_allow_html=True)
 
 # ==========================================
-# 8. PAGE CONTENT
+# 8. MAIN PAGES
 # ==========================================
 
 if st.session_state.page == "citation_engine":
     st.markdown('<p class="main-title">Citemate Pro</p>', unsafe_allow_html=True)
     st.markdown(f'<p class="sub-title">{get_text("app_subtitle")}</p>', unsafe_allow_html=True)
     
-    # Information Box
     st.markdown(f"""
         <div class="info-box">
             <p style="color: #e2e8f0; font-size: 16px; line-height: 1.6; margin-bottom: 0;">
@@ -654,88 +648,72 @@ if st.session_state.page == "citation_engine":
         </div>
     """, unsafe_allow_html=True)
     
-    # Format Selection
-    style = st.selectbox(
-        get_text("format_label"),
-        ["Vancouver", "APA 7th", "IEEE", "MLA"],
-        index=0
-    )
+    style = st.selectbox(get_text("format_label"), ["Vancouver", "APA 7th", "IEEE", "MLA"], index=0)
     
-    # Tabs for input methods
     t1, t2, t3 = st.tabs([get_text("tab_doi"), get_text("tab_search"), get_text("tab_pdf")])
     
     with t1:
         st.subheader(get_text("tab_doi"))
         doi_in = st.text_input(get_text("doi_label"), placeholder=get_text("doi_placeholder"), key="doi_input")
         
-        col_doi1, col_doi2 = st.columns(2)
-        with col_doi1:
-            if st.button(get_text("doi_button"), key="btn_doi", use_container_width=True):
-                if not doi_in.strip():
-                    st.markdown(f'<div class="error-box">{get_text("error_empty_input")}</div>', unsafe_allow_html=True)
-                elif not is_valid_doi(doi_in):
-                    st.markdown(f'<div class="error-box">{get_text("error_invalid_doi")}</div>', unsafe_allow_html=True)
-                else:
-                    with st.spinner(get_text("searching")):
-                        res = get_cite(doi_in, is_doi=True)
-                        if res:
-                            if is_duplicate_reference(res):
-                                st.markdown(f'<div class="warning-box">{get_text("warning_duplicate")}</div>', unsafe_allow_html=True)
-                            else:
-                                st.session_state.refs.append(res)
-                                st.markdown(f'<div class="success-box">{get_text("success_added")}</div>', unsafe_allow_html=True)
-                                st.rerun()
+        if st.button(get_text("doi_button"), key="btn_doi", use_container_width=True):
+            if not doi_in.strip():
+                st.markdown(f'<div class="error-box">{get_text("error_empty_input")}</div>', unsafe_allow_html=True)
+            elif not is_valid_doi(doi_in):
+                st.markdown(f'<div class="error-box">{get_text("error_invalid_doi")}</div>', unsafe_allow_html=True)
+            else:
+                with st.spinner(get_text("searching")):
+                    res = get_cite(doi_in, is_doi=True)
+                    if res:
+                        if is_duplicate_reference(res):
+                            st.markdown(f'<div class="warning-box">{get_text("warning_duplicate")}</div>', unsafe_allow_html=True)
+                        else:
+                            st.session_state.refs.append(res)
+                            st.markdown(f'<div class="success-box">{get_text("success_added")}</div>', unsafe_allow_html=True)
+                            st.rerun()
     
     with t2:
         st.subheader(get_text("tab_search"))
         q_in = st.text_input(get_text("search_label"), placeholder=get_text("search_placeholder"), key="query_input")
         
-        col_q1, col_q2 = st.columns(2)
-        with col_q1:
-            if st.button(get_text("search_button"), key="btn_q", use_container_width=True):
-                if not q_in.strip():
-                    st.markdown(f'<div class="error-box">{get_text("error_empty_input")}</div>', unsafe_allow_html=True)
-                else:
-                    with st.spinner(get_text("searching")):
-                        res = get_cite(q_in, is_doi=False)
-                        if res:
-                            if is_duplicate_reference(res):
-                                st.markdown(f'<div class="warning-box">{get_text("warning_duplicate")}</div>', unsafe_allow_html=True)
-                            else:
-                                st.session_state.refs.append(res)
-                                st.markdown(f'<div class="success-box">{get_text("success_added")}</div>', unsafe_allow_html=True)
-                                st.rerun()
+        if st.button(get_text("search_button"), key="btn_q", use_container_width=True):
+            if not q_in.strip():
+                st.markdown(f'<div class="error-box">{get_text("error_empty_input")}</div>', unsafe_allow_html=True)
+            else:
+                with st.spinner(get_text("searching")):
+                    res = get_cite(q_in, is_doi=False)
+                    if res:
+                        if is_duplicate_reference(res):
+                            st.markdown(f'<div class="warning-box">{get_text("warning_duplicate")}</div>', unsafe_allow_html=True)
+                        else:
+                            st.session_state.refs.append(res)
+                            st.markdown(f'<div class="success-box">{get_text("success_added")}</div>', unsafe_allow_html=True)
+                            st.rerun()
     
     with t3:
         st.subheader(get_text("tab_pdf"))
         pdf_file = st.file_uploader(get_text("pdf_label"), type="pdf", help=get_text("pdf_help"))
         
-        if pdf_file:
-            col_pdf1, col_pdf2 = st.columns(2)
-            with col_pdf1:
-                if st.button(get_text("pdf_button"), key="btn_pdf", use_container_width=True):
-                    with st.spinner(get_text("reading")):
-                        res = process_pdf(pdf_file.read(), pdf_file.name)
-                        if res:
-                            if is_duplicate_reference(res):
-                                st.markdown(f'<div class="warning-box">{get_text("warning_duplicate")}</div>', unsafe_allow_html=True)
-                            else:
-                                st.session_state.refs.append(res)
-                                st.markdown(f'<div class="success-box">{get_text("success_added")}</div>', unsafe_allow_html=True)
-                                st.rerun()
-                        else:
-                            st.markdown(f'<div class="error-box">{get_text("error_no_doi")}</div>', unsafe_allow_html=True)
+        if pdf_file and st.button(get_text("pdf_button"), key="btn_pdf", use_container_width=True):
+            with st.spinner(get_text("reading")):
+                res = process_pdf(pdf_file.read(), pdf_file.name)
+                if res:
+                    if is_duplicate_reference(res):
+                        st.markdown(f'<div class="warning-box">{get_text("warning_duplicate")}</div>', unsafe_allow_html=True)
+                    else:
+                        st.session_state.refs.append(res)
+                        st.markdown(f'<div class="success-box">{get_text("success_added")}</div>', unsafe_allow_html=True)
+                        st.rerun()
+                else:
+                    st.markdown(f'<div class="error-box">{get_text("error_no_doi")}</div>', unsafe_allow_html=True)
     
-    # Bibliography Output
     if len(st.session_state.refs) > 0:
         st.divider()
         st.subheader(get_text("bibliography_title"))
         
-        # Display bibliography
         bibliography = generate_bibliography(st.session_state.refs, style)
         st.text_area(get_text("bibliography_label"), value=bibliography, height=300, disabled=True, key="bib_output")
         
-        # Download and action buttons
         col_d1, col_d2, col_d3 = st.columns(3)
         
         with col_d1:
@@ -753,32 +731,23 @@ if st.session_state.page == "citation_engine":
         
         with col_d3:
             if st.button(get_text("clear_button"), use_container_width=True):
-                if st.button(get_text("confirm_delete"), key="confirm_delete"):
-                    st.session_state.refs = []
-                    st.markdown(f'<div class="success-box">{get_text("warning_cleared")}</div>', unsafe_allow_html=True)
-                    st.rerun()
+                st.session_state.refs = []
+                st.markdown(f'<div class="success-box">{get_text("warning_cleared")}</div>', unsafe_allow_html=True)
+                st.rerun()
         
-        # Display source list
         st.subheader(f"{get_text('sources_title')} ({len(st.session_state.refs)})")
         
         for idx, ref in enumerate(st.session_state.refs, 1):
             col_ref1, col_ref2 = st.columns([4, 1])
             
             with col_ref1:
-                st.markdown(f"""
-                    **#{idx}** - {ref.get('author', 'Anonim')} ({ref.get('year', '2026')})
-                    
-                    {ref.get('title', 'No Title')[:100]}...
-                    
-                    *{ref.get('source', 'Source')}*
-                """)
+                st.markdown(f"**#{idx}** - {ref.get('author', 'Anonim')} ({ref.get('year', '2026')})\n\n{ref.get('title', 'No Title')[:100]}...\n\n*{ref.get('source', 'Source')}*")
             
             with col_ref2:
                 if st.button(get_text("delete_source"), key=f"del_{idx}", use_container_width=True):
                     st.session_state.refs.pop(idx - 1)
                     st.rerun()
     
-    # FAQ Section
     st.divider()
     col_faq1, col_faq2 = st.columns(2)
     
@@ -810,12 +779,10 @@ elif st.session_state.page == "services":
         <div class="service-card">
             <h3>{get_text("service_genetic")}</h3>
             <p>{get_text("service_genetic_desc")}</p>
-            <span class="feature-tag">TCGA</span><span class="feature-tag">GEO</span><span class="feature-tag">NCBI</span>
         </div>
         <div class="service-card">
             <h3>{get_text("service_ml")}</h3>
             <p>{get_text("service_ml_desc")}</p>
-            <span class="feature-tag">Python</span><span class="feature-tag">ML / AI</span>
         </div>
         """, unsafe_allow_html=True)
     
@@ -824,17 +791,11 @@ elif st.session_state.page == "services":
         <div class="service-card">
             <h3>{get_text("service_bigdata")}</h3>
             <p>{get_text("service_bigdata_desc")}</p>
-            <span class="feature-tag">Big Data</span><span class="feature-tag">Python</span>
         </div>
         <div class="service-card">
             <h3>{get_text("service_editorial")}</h3>
             <p>{get_text("service_editorial_desc")}</p>
-            <span class="feature-tag">Editorial Review</span>
         </div>
         """, unsafe_allow_html=True)
-
-# ==========================================
-# 9. FOOTER
-# ==========================================
 
 st.markdown(f'<div class="footer">{get_text("copyright")}</div>', unsafe_allow_html=True)
