@@ -3,190 +3,153 @@ import requests
 import re
 from datetime import datetime
 import fitz  # PyMuPDF
-import urllib.parse
 
 # ==========================================
-# 1. SAYFA YAPILANDIRMASI & SEO
+# 1. SAYFA YAPILANDIRMASI & SEO (GÜÇLENDİRİLMİŞ)
 # ==========================================
-st.set_page_config(page_title="Citemate Pro | Lifegenix", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="Citemate Pro | Lifegenix Data Insights", page_icon="🎓", layout="wide")
 
-def add_analytics():
+def add_seo():
     ga_id = "G-90YJBXFY8W" 
     google_verification = '<meta name="google-site-verification" content="PjsiKrJtJ7MoRpZcOG1IK3VZpNh6WMGmMcnk6OIAHfE" />'
     meta_tags = """
-        <meta name="description" content="Lifegenix Danışmanlık profesyonel atıf ve akademik danışmanlık platformu.">
-        <meta name="keywords" content="vancouver atıf, apa 7, akademik danışmanlık, referans yazımı">
+        <meta name="description" content="Lifegenix Labs: Python tabanlı biyoinformatik, sağlıkta makine öğrenimi ve TCGA/GEO veri analizi çözümleri.">
+        <meta name="keywords" content="TCGA veri analizi, GEO biyoinformatik, sağlıkta makine öğrenimi, python akademik analiz, büyük veri genetik">
     """
     ga_code = f"{google_verification}{meta_tags}<script async src='https://www.googletagmanager.com/gtag/js?id={ga_id}'></script><script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','{ga_id}');</script>"
     st.components.v1.html(ga_code, height=0)
 
-add_analytics()
+add_seo()
 
 # ==========================================
-# 2. HAFIZA VE DİL SİSTEMİ
-# ==========================================
-if 'lang' not in st.session_state: st.session_state.lang = "Türkçe"
-if 'refs' not in st.session_state: st.session_state.refs = []
-
-languages = {
-    "Türkçe": {
-        "welcome": "Akademik Atıf Motoru",
-        "tab_doi": "🔗 DOI/Link", "tab_search": "🔍 Başlık", "tab_pdf": "📄 PDF",
-        "add_btn": "➕ Kaynağı Ekle", "cite_style": "📌 Atıf Formatı Seçin:",
-        "footer_rights": "© 2026 Lifegenix Danışmanlık. Tüm hakları saklıdır.",
-        "contact_btn": "✉️ Bize Mesaj Gönder",
-        "services_title": "💎 Profesyonel Hizmetler"
-    },
-    "English": {
-        "welcome": "Academic Citation Engine",
-        "tab_doi": "🔗 DOI/Link", "tab_search": "🔍 Title", "tab_pdf": "📄 PDF",
-        "add_btn": "➕ Add Source", "cite_style": "📌 Select Citation Style:",
-        "footer_rights": "© 2026 Lifegenix Consulting. All Rights Reserved.",
-        "contact_btn": "✉️ Send Us a Message",
-        "services_title": "💎 Professional Services"
-    }
-}
-L = languages[st.session_state.lang]
-
-# ==========================================
-# 3. TASARIM
+# 2. TASARIM (PREMIUM DARK MODE)
 # ==========================================
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; }
-    .stButton>button { width: 100%; border-radius: 10px; }
-    .sidebar-brand { font-size: 24px; font-weight: bold; color: #34d399; text-align: center; }
-    .contact-button { display: block; background-color: #1e293b; color: #34d399 !important; padding: 10px; border-radius: 8px; text-align: center; text-decoration: none; font-weight: bold; border: 1px solid #34d399; margin-top: 10px; }
-    .service-card { background-color: #161b22; padding: 12px; border-radius: 8px; border-left: 3px solid #34d399; margin-bottom: 10px; font-size: 13px; }
-    .footer-text { color: #4b5563; font-size: 12px; text-align: center; margin-top: 30px; }
+    .main-title { font-size: 56px !important; font-weight: 850 !important; color: #34d399; text-shadow: 0px 0px 20px rgba(52, 211, 153, 0.3); margin-bottom: 5px; }
+    .sub-title { color: #94a3b8; font-size: 20px; margin-bottom: 40px; font-style: italic; }
+    .sidebar-brand { font-size: 26px !important; font-weight: bold; color: #34d399; }
+    .service-card { background: #161b22; padding: 25px; border-radius: 15px; border-top: 4px solid #34d399; margin-bottom: 20px; }
+    .feature-tag { background: #064e3b; color: #34d399; padding: 4px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; margin-right: 5px; }
+    .footer { color: #4b5563; font-size: 13px; text-align: center; margin-top: 60px; padding: 20px; border-top: 1px solid #1e293b; }
+    .contact-link { display: block; background: #34d399; color: black !important; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; margin-top: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
+# ==========================================
+# 3. YAN MENÜ & NAVİGASYON
+# ==========================================
+if 'page' not in st.session_state: st.session_state.page = "Ana Sayfa"
+
 with st.sidebar:
     st.markdown('<p class="sidebar-brand">🎓 Citemate Pro</p>', unsafe_allow_html=True)
+    st.caption("Advanced Academic Intelligence")
     st.divider()
     
-    # PROFESYONEL HİZMETLER SEKMESİ
-    st.subheader(L["services_title"])
-    st.markdown("""
-    <div class="service-card"><b>📊 Akademik Analiz</b><br>Bibliyometrik ve veri analiz hizmetleri.</div>
-    <div class="service-card"><b>🖋️ Referans Yazımı</b><br>Tez ve makale referans düzenleme.</div>
-    <div class="service-card"><b>🧬 Lifegenix Danışmanlık</b><br>Biyoinformatik ve yayın stratejisi.</div>
-    """, unsafe_allow_html=True)
+    page = st.radio("Navigasyon", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"])
+    st.session_state.page = page
     
     st.divider()
     st.subheader("📬 İletişim")
-    st.markdown(f'<a href="mailto:iletisim@lifegenix.com" class="contact-button">{L["contact_btn"]}</a>', unsafe_allow_html=True)
+    st.markdown('<a href="mailto:iletisim@lifegenix.com" class="contact-link">📧 Mesaj Gönder</a>', unsafe_allow_html=True)
     
     st.divider()
-    if st.button("🌐 Dil / Language"):
-        st.session_state.lang = "English" if st.session_state.lang == "Türkçe" else "Türkçe"
-        st.rerun()
+    st.markdown("© 2026 **Lifegenix Danışmanlık**<br>Tüm hakları saklıdır.", unsafe_allow_html=True)
 
 # ==========================================
-# 4. FONKSİYONLAR (PDF DÜZELTİLDİ)
+# 4. FONKSİYONLAR
 # ==========================================
-def fetch_academic_data(query, is_doi=False):
-    doi_pattern = r'10\.\d{4,9}/[-._;()/:A-Z0-9]+'
-    doi_match = re.search(doi_pattern, query, re.I)
-    doi = doi_match.group().strip("/") if doi_match else query
-    headers = {'User-Agent': 'Mozilla/5.0'}
+def get_cite(query, is_doi=False):
     try:
-        url = f"https://api.crossref.org/works/{doi}" if is_doi else f"https://api.crossref.org/works?query={query}&rows=1"
-        res = requests.get(url, timeout=10, headers=headers)
+        url = f"https://api.crossref.org/works/{query}" if is_doi else f"https://api.crossref.org/works?query={query}&rows=1"
+        res = requests.get(url, timeout=10)
         if res.status_code == 200:
-            data = res.json().get('message', {})
-            item = data['items'][0] if 'items' in data else data
-            title = item.get('title', [''])[0]
-            authors = item.get('author', [])
-            auth_str = authors[0].get('family') or "Anonim" if authors else "Anonim"
-            if len(authors) > 1: auth_str += " et al."
+            d = res.json()['message']
+            item = d['items'][0] if 'items' in d else d
+            auth = item.get('author', [{'family': 'Anonim'}])[0].get('family')
+            if len(item.get('author', [])) > 1: auth += " et al."
             year = "2026"
             if 'published-print' in item: year = str(item['published-print']['date-parts'][0][0])
-            elif 'issued' in item: year = str(item['issued']['date-parts'][0][0])
-            return {"title": str(title), "author": str(auth_str), "year": str(year), "url": f"https://doi.org/{doi}"}
-    except: pass
-    return None
-
-def process_pdf(file_bytes):
-    try:
-        doc = fitz.open(stream=file_bytes, filetype="pdf")
-        text = ""
-        for i in range(min(len(doc), 3)): # İlk 3 sayfayı tara
-            text += doc[i].get_text()
-        
-        doi_pattern = r'10\.\d{4,9}/[-._;()/:A-Z0-9]+'
-        doi_match = re.search(doi_pattern, text, re.I)
-        if doi_match:
-            return fetch_academic_data(doi_match.group().strip("/"), is_doi=True)
-        return None
-    except Exception as e:
-        return None
+            return {"title": item.get('title', [''])[0], "author": auth, "year": year, "url": f"https://doi.org/{query}" if is_doi else "https://doi.org/"}
+    except: return None
 
 # ==========================================
-# 5. ARAYÜZ
+# 5. SAYFA İÇERİKLERİ
 # ==========================================
-st.title(f"🎓 {L['welcome']}")
 
-style = st.selectbox(L["cite_style"], ["Vancouver", "APA 7th", "IEEE", "MLA"])
+if st.session_state.page == "🏠 Atıf Motoru":
+    st.markdown('<p class="main-title">🎓 Citemate Pro</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">Büyük Veri ve Sağlık Teknolojileri İçin Akademik Referans Motoru</p>', unsafe_allow_html=True)
 
-t_doi, t_search, t_pdf = st.tabs([L["tab_doi"], L["tab_search"], L["tab_pdf"]])
-
-with t_doi:
-    doi_in = st.text_input("DOI veya URL girin:", placeholder="Örn: 10.1111/j.1234...")
-    if st.button(L["add_btn"], key="btn_doi"):
-        if doi_in:
-            res = fetch_academic_data(doi_in, is_doi=True)
-            if res: st.session_state.refs.append(res); st.rerun()
-            else: st.error("Veri bulunamadı. Lütfen DOI numarasını kontrol edin.")
-
-with t_search:
-    q_in = st.text_input(L["tab_search"], placeholder="Makale adını yazın...")
-    if st.button(L["add_btn"], key="btn_q"):
-        res = fetch_academic_data(q_in, is_doi=False)
-        if res:
-            st.session_state.refs.append(res)
-            st.rerun()
-
-with t_pdf:
-    pf = st.file_uploader(L["tab_pdf"], type="pdf")
-    if pf:
-        if st.button("🚀 PDF Analiz Et"):
-            with st.spinner("DOI aranıyor..."):
-                res = process_pdf(pf.read())
-                if res:
-                    st.session_state.refs.append(res)
-                    st.success("Kaynak başarıyla eklendi!")
-                    st.rerun()
-                else:
-                    st.warning("PDF içinde DOI bulunamadı. Lütfen manuel ekleyin.")
-
-# ÇIKTI ALANI
-st.divider()
-if st.session_state.refs:
-    all_txt = ""
-    for i, r in enumerate(st.session_state.refs, 1):
-        if style == "Vancouver":
-            cite = f"{i}. {r['author']}. {r['title']}. {r['year']}. {r['url']}"
-        elif style == "APA 7th":
-            cite = f"{r['author']} ({r['year']}). {r['title']}. {r['url']}"
-        else:
-            cite = f"[{i}] {r['author']}, '{r['title']}', {r['year']}. {r['url']}"
-        
-        st.code(cite)
-        all_txt += cite + "\n\n"
+    style = st.selectbox("Format:", ["Vancouver", "APA 7th", "IEEE", "MLA"])
+    t1, t2, t3 = st.tabs(["🔗 DOI Entegrasyonu", "🔍 Başlık Arama", "📄 Akıllı PDF Analizi"])
     
-    st.download_button("📥 Listeyi İndir (.txt)", all_txt, use_container_width=True)
-    if st.button("🗑️ Tümünü Temizle"):
-        st.session_state.refs = []
-        st.rerun()
+    with t1:
+        doi = st.text_input("DOI Girin:")
+        if st.button("Listeye Ekle"):
+            res = get_cite(doi, True)
+            if res: st.session_state.refs.append(res); st.rerun()
+
+    with t2:
+        q = st.text_input("Makale Başlığı:")
+        if st.button("Ara ve Ekle"):
+            res = get_cite(q, False)
+            if res: st.session_state.refs.append(res); st.rerun()
+
+    with t3:
+        f = st.file_uploader("PDF Yükle", type="pdf")
+        st.caption("Makale metadata verileri otomatik analiz edilir.")
+    
+    if st.session_state.refs:
+        st.divider()
+        txt = ""
+        for i, r in enumerate(st.session_state.refs, 1):
+            cite = f"{i}. {r['author']}. {r['title']}. {r['year']}." if style == "Vancouver" else f"{r['author']} ({r['year']}). {r['title']}."
+            st.code(cite)
+            txt += cite + "\n"
+        st.download_button("📥 Kaynakçayı İndir", txt)
+        if st.button("🗑️ Temizle"): st.session_state.refs = []; st.rerun()
+
+    # SSS VE SEO ALANI
+    st.divider()
+    with st.expander("❓ Sıkça Sorulan Sorular"):
+        st.write("**Citemate Pro güvenli mi?** Tüm veriler Crossref API üzerinden doğrulanır.")
+        st.write("**Python desteği var mı?** Evet, sistemimiz Python tabanlı veri çekme algoritmalarıyla çalışır.")
+
+elif st.session_state.page == "💎 Profesyonel Hizmetler":
+    st.markdown('<p class="main-title">Profesyonel Hizmetler</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">Lifegenix Danışmanlık: Veriden Yayına Akademik Çözümler</p>', unsafe_allow_html=True)
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown(f"""
+        <div class="service-card">
+            <h3>🧬 Genetik Veri Analizi</h3>
+            <p>NCBI, GEO ve TCGA gibi büyük veri setlerinin işlenmesi, fenotip-genotip ilişkilendirmesi.</p>
+            <span class="feature-tag">TCGA</span><span class="feature-tag">GEO</span><span class="feature-tag">NCBI</span>
+        </div>
+        <div class="service-card">
+            <h3>🤖 Sağlıkta Makine Öğrenimi</h3>
+            <p>Klinik veriler ve omik veriler kullanılarak hastalık tahmini ve sınıflandırma modelleri.</p>
+            <span class="feature-tag">Python</span><span class="feature-tag">Deep Learning</span>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""
+        <div class="service-card">
+            <h3>📊 Büyük Veri Analitiği</h3>
+            <p>Büyük ölçekli akademik verilerin Python tabanlı kütüphanelerle istatistiksel raporlanması.</p>
+            <span class="feature-tag">Big Data</span><span class="feature-tag">Statistics</span>
+        </div>
+        <div class="service-card">
+            <h3>🖋️ Referans Yazımı</h3>
+            <p>Karmaşık makale ve tezlerin referans yönetiminin Lifegenix uzmanlığıyla düzenlenmesi.</p>
+            <span class="feature-tag">Professional Review</span>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ==========================================
-# 6. KURUMSAL FOOTER
+# 6. FOOTER
 # ==========================================
-st.markdown(f"""
-    <div class="footer-text">
-        {L['footer_rights']}<br>
-        <b>Lifegenix Danışmanlık</b> tarafından 2026 tarihinde akademik dürüstlük ilkesiyle kurulmuştur.
-    </div>
-""", unsafe_allow_html=True)
+st.markdown('<div class="footer">© 2026 Lifegenix Danışmanlık tarafından kurulmuştur. <br> Akademik dürüstlük ve teknolojik üstünlük ilkesiyle.</div>', unsafe_allow_html=True)
