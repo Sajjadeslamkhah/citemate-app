@@ -6,8 +6,16 @@ from bs4 import BeautifulSoup
 import fitz  # PyMuPDF
 import urllib.parse
 
-# 1. SAYFA VE DİL YAPILANDIRMASI
-st.set_page_config(page_title="Citemate Pro v10.4", page_icon="🎓", layout="wide")
+# 1. SAYFA YAPILANDIRMASI
+st.set_page_config(page_title="Citemate Pro v10.5", page_icon="🎓", layout="wide")
+
+# 2. DİL VE SESSION STATE YÖNETİMİ
+if 'lang' not in st.session_state:
+    st.session_state.lang = "Türkçe"
+if 'refs' not in st.session_state:
+    st.session_state.refs = []
+if 'temp_search' not in st.session_state:
+    st.session_state.temp_search = None
 
 languages = {
     "Türkçe": {
@@ -46,10 +54,7 @@ languages = {
     }
 }
 
-selected_lang = st.sidebar.selectbox("🌐 Dil / Language", list(languages.keys()), key="lang_v104")
-L = languages[selected_lang]
-
-# 2. GÖRSEL TASARIM
+# 3. GÖRSEL TASARIM
 st.markdown("""
     <style>
     .main { background-color: #0e1117; }
@@ -59,21 +64,36 @@ st.markdown("""
     .result-box { background-color: #1a1a1a; padding: 20px; border: 2px solid #34d399; border-radius: 10px; margin: 15px 0; }
     .share-wa { background-color: #075E54; color: white !important; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; display: block; text-align: center; border: 1px solid #128C7E; }
     .share-mail { background-color: #2c3e50; color: white !important; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; display: block; text-align: center; border: 1px solid #34495e; }
+    
+    /* Üst Dil Butonları */
+    .lang-btn { padding: 5px 15px; border-radius: 15px; border: 1px solid #34d399; cursor: pointer; display: inline-block; margin-left: 10px; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
-if 'refs' not in st.session_state: st.session_state.refs = []
-if 'temp_search' not in st.session_state: st.session_state.temp_search = None
+# 4. ÜST PANEL: BAŞLIK VE DİL DÜĞMELERİ
+col_header, col_lang = st.columns([7, 3])
 
-# 3. AKADEMİK TEŞHİS MOTORU
+with col_header:
+    st.title("🎓 Citemate Pro v10.5")
+
+with col_lang:
+    st.write("") # Boşluk
+    c1, c2 = st.columns(2)
+    if c1.button("🇹🇷 Türkçe"):
+        st.session_state.lang = "Türkçe"
+        st.rerun()
+    if c2.button("🇺🇸 English"):
+        st.session_state.lang = "English"
+        st.rerun()
+
+L = languages[st.session_state.lang]
+
+# 5. AKADEMİK MOTOR FONKSİYONLARI
 def fetch_academic_data(query, is_doi=False):
-    # Parantezli ve karmaşık DOI'leri yakalayan hassas regex
     doi_pattern = r'10\.\d{4,9}/[-._;()/:A-Z0-9]+'
     doi_match = re.search(doi_pattern, query, re.I)
     doi = doi_match.group().strip("/") if doi_match else query
-
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-    
     try:
         url = f"https://api.crossref.org/works/{doi}" if is_doi else f"https://api.crossref.org/works?query={query}&rows=1"
         res = requests.get(url, timeout=12, headers=headers)
@@ -82,19 +102,14 @@ def fetch_academic_data(query, is_doi=False):
             item = data['items'][0] if 'items' in data else data
             title = item.get('title', [''])[0]
             if not title: return None
-            
             authors = item.get('author', [])
             auth_str = authors[0].get('family') or authors[0].get('literal') or "Anonim"
             if len(authors) > 1: auth_str += " et al."
-            
             year = "2026"
             for field in ['published-print', 'published-online', 'issued', 'created']:
                 if field in item and item[field].get('date-parts'):
-                    potential_year = item[field]['date-parts'][0][0]
-                    if potential_year:
-                        year = str(potential_year)
-                        break
-            
+                    py = item[field]['date-parts'][0][0]
+                    if py: year = str(py); break
             return {"title": str(title), "author": str(auth_str), "year": year, "url": f"https://doi.org/{doi}"}
     except: pass
     return None
@@ -105,17 +120,15 @@ def process_pdf(file_bytes, filename):
         text = "".join([doc[i].get_text() for i in range(min(len(doc), 2))])
         doi_pattern = r'10\.\d{4,9}/[-._;()/:A-Z0-9]+'
         doi_match = re.search(doi_pattern, text, re.I)
-        if doi_match:
-            return fetch_academic_data(doi_match.group().strip("/"), is_doi=True)
+        if doi_match: return fetch_academic_data(doi_match.group().strip("/"), is_doi=True)
         lines = [l.strip() for l in text.split('\n') if len(l.strip()) > 15]
         return {"title": lines[0] if lines else filename, "author": "PDF", "year": "2026", "url": filename}
     except: return None
 
-# 4. ARAYÜZ
-st.title("🎓 Citemate Pro v10.4")
+# 6. ANA İÇERİK
 with st.expander(L["tutorial_title"]): st.info(L["tutorial_text"])
 
-style = st.selectbox(L["cite_style"], ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"], key="style_v104")
+style = st.selectbox(L["cite_style"], ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"], key="style_final")
 st.divider()
 
 col_in, col_out = st.columns([4, 6], gap="large")
@@ -125,21 +138,19 @@ with col_in:
     t_doi, t_search, t_pdf = st.tabs([L["tab_doi"], L["tab_search"], L["tab_pdf"]])
     
     with t_doi:
-        doi_in = st.text_input("DOI / URL:", key="doi_v104")
-        if st.button(L["add_btn"], key="btn_doi_v104"):
+        doi_in = st.text_input("DOI / URL:", key="doi_v105")
+        if st.button(L["add_btn"], key="btn_doi_v105"):
             if doi_in.strip():
                 with st.spinner("Analyzing..."):
                     res = fetch_academic_data(doi_in, is_doi=True)
-                    if res:
-                        st.session_state.refs.append(res); st.success("Found!"); st.rerun()
+                    if res: st.session_state.refs.append(res); st.rerun()
                     else:
                         st.session_state.refs.append({"title": doi_in, "author": "Web", "year": "2026", "url": doi_in})
-                        st.warning("Metadata not found, added as link.")
-                        st.rerun()
+                        st.warning("Added as link."); st.rerun()
 
     with t_search:
-        title_q = st.text_input(L["tab_search"] + ":", key="q_v104")
-        if st.button("🔍 Search", key="btn_search_v104"):
+        title_q = st.text_input(L["tab_search"] + ":", key="q_v105")
+        if st.button("🔍 Search", key="btn_search_v105"):
             if title_q.strip():
                 with st.spinner("Searching..."):
                     res = fetch_academic_data(title_q, is_doi=False)
@@ -151,18 +162,16 @@ with col_in:
             st.write(f"**{st.session_state.temp_search['title']}**")
             st.write(f"{st.session_state.temp_search['author']} ({st.session_state.temp_search['year']})")
             st.markdown('</div>', unsafe_allow_html=True)
-            c1, c2 = st.columns(2)
-            with c1: 
-                if st.button(L["confirm_btn"], key="conf_v104"):
-                    st.session_state.refs.append(st.session_state.temp_search)
-                    st.session_state.temp_search = None; st.rerun()
-            with c2:
-                if st.button(L["cancel_btn"], key="canc_v104"):
-                    st.session_state.temp_search = None; st.rerun()
+            c_y, c_n = st.columns(2)
+            if c_y.button(L["confirm_btn"], key="conf_v105"):
+                st.session_state.refs.append(st.session_state.temp_search)
+                st.session_state.temp_search = None; st.rerun()
+            if c_n.button(L["cancel_btn"], key="canc_v105"):
+                st.session_state.temp_search = None; st.rerun()
 
     with t_pdf:
-        pf = st.file_uploader(L["tab_pdf"], type="pdf", key="up_v104")
-        if pf and st.button("📄 Analyze PDF", key="btn_pdf_v104"):
+        pf = st.file_uploader(L["tab_pdf"], type="pdf", key="up_v105")
+        if pf and st.button("📄 Analyze PDF", key="btn_pdf_v105"):
             res = process_pdf(pf.read(), pf.name)
             if res: st.session_state.refs.append(res); st.rerun()
 
@@ -187,28 +196,14 @@ with col_out:
                 st.markdown(f'<div class="intext-box">{intext} ({r.get("title")[:30]}...)</div>', unsafe_allow_html=True)
 
         st.divider()
-        
-        # --- İNDİRME VE PAYLAŞMA ALANI ---
-        st.subheader(L["share_results"])
-        
-        # İndirme Butonu (Eklendi)
-        st.download_button(
-            label=L["download_btn"],
-            data=all_bib_text,
-            file_name=f"kaynakca_{datetime.now().strftime('%Y%m%d')}.txt",
-            mime="text/plain",
-            use_container_width=True
-        )
-        
-        st.write("") # Boşluk
-        
-        encoded_res = urllib.parse.quote(f"Citemate Bibliography ({style}):\n\n" + all_bib_text)
-        col_w, col_m = st.columns(2)
-        with col_w: st.markdown(f'<a href="https://api.whatsapp.com/send?text={encoded_res}" target="_blank" class="share-wa">{L["wa_share"]}</a>', unsafe_allow_html=True)
-        with col_m: st.markdown(f'<a href="mailto:?subject=Bibliography&body={encoded_res}" class="share-mail">{L["mail_share"]}</a>', unsafe_allow_html=True)
-        
-        if st.button("🗑️ Clear All", key="clear_v104", use_container_width=True):
+        st.download_button(label=L["download_btn"], data=all_bib_text, file_name=f"kaynakca.txt", use_container_width=True)
+        st.write("")
+        encoded_res = urllib.parse.quote(f"Citemate Results:\n\n" + all_bib_text)
+        cw, cm = st.columns(2)
+        cw.markdown(f'<a href="https://api.whatsapp.com/send?text={encoded_res}" target="_blank" class="share-wa">{L["wa_share"]}</a>', unsafe_allow_html=True)
+        cm.markdown(f'<a href="mailto:?subject=Bibliography&body={encoded_res}" class="share-mail">{L["mail_share"]}</a>', unsafe_allow_html=True)
+        if st.button("🗑️ Clear All", key="clear_v105", use_container_width=True):
             st.session_state.refs = []; st.rerun()
-    else: st.info("No sources added yet.")
+    else: st.info("No sources.")
 
 st.markdown(f"--- \n<center><i>{L['footer_msg']}</i></center>", unsafe_allow_html=True)
