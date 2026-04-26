@@ -22,13 +22,11 @@ def add_seo():
 add_seo()
 
 # ==========================================
-# 2. HAFIZA BAŞLATMA (KRİTİK HATA ÇÖZÜMÜ)
+# 2. HAFIZA BAŞLATMA
 # ==========================================
-if 'refs' not in st.session_state:
-    st.session_state.refs = []
-
-if 'page' not in st.session_state:
-    st.session_state.page = "🏠 Atıf Motoru"
+if 'refs' not in st.session_state: st.session_state.refs = []
+if 'page' not in st.session_state: st.session_state.page = "🏠 Atıf Motoru"
+if 'lang' not in st.session_state: st.session_state.lang = "Türkçe"
 
 # ==========================================
 # 3. TASARIM VE KURUMSAL KİMLİK
@@ -59,14 +57,21 @@ with st.sidebar:
     st.caption("Elite Academic Solutions | Powered by Lifegenix")
     st.divider()
     
+    # Dil Seçimi
+    c1, c2 = st.columns(2)
+    if c1.button("🇹🇷 TR"): st.session_state.lang = "Türkçe"
+    if c2.button("🇺🇸 EN"): st.session_state.lang = "English"
+    
+    st.divider()
+    
     selection = st.radio("SİSTEM MENÜSÜ", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"], label_visibility="collapsed")
     st.session_state.page = selection
     
     st.markdown(f"""
         <div class="contact-container">
-            <p style="color: #34d399; font-weight: bold; margin-bottom: 5px; font-size: 17px;">📩 Bize Ulaşın</p>
-            <p style="color: #94a3b8; font-size: 13px;">Akademik iş birliği ve kurumsal analiz teklifleri için ulaşın.</p>
-            <a href="mailto:{MY_EMAIL}" class="contact-btn">✉️ Mesaj Gönder</a>
+            <p style="color: #34d399; font-weight: bold; margin-bottom: 5px; font-size: 17px;">{"📩 Bize Ulaşın" if st.session_state.lang == "Türkçe" else "📩 Contact Us"}</p>
+            <p style="color: #94a3b8; font-size: 13px;">{"Akademik iş birliği ve kurumsal analiz teklifleri için ulaşın." if st.session_state.lang == "Türkçe" else "Reach out for academic collaboration and corporate analysis quotes."}</p>
+            <a href="mailto:{MY_EMAIL}" class="contact-btn">{"✉️ Mesaj Gönder" if st.session_state.lang == "Türkçe" else "✉️ Send Message"}</a>
         </div>
     """, unsafe_allow_html=True)
     
@@ -105,9 +110,9 @@ def process_pdf(file_bytes):
 
 if st.session_state.page == "🏠 Atıf Motoru":
     st.markdown('<p class="main-title">🎓 Citemate Pro</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">Akademik Mükemmeliyet İçin Kusursuz Atıf Yönetimi</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="sub-title">{"Akademik Mükemmeliyet İçin Kusursuz Atıf Yönetimi" if st.session_state.lang == "Türkçe" else "Seamless Citation Management for Academic Excellence"}</p>', unsafe_allow_html=True)
 
-    # ŞEFFAF BİLGİLENDİRME MESAJI
+    # ŞEFFAF BİLGİLENDİRME MESAJI (DEĞİŞMEZ)
     st.markdown("""
         <div class="info-box">
             <p style="color: #e2e8f0; font-size: 16px; line-height: 1.6; margin-bottom: 0;">
@@ -119,7 +124,7 @@ if st.session_state.page == "🏠 Atıf Motoru":
         </div>
     """, unsafe_allow_html=True)
 
-    style = st.selectbox("Tercih Edilen Standard:", ["Vancouver", "APA 7th", "IEEE", "MLA"])
+    style = st.selectbox("Tercih Edilen Standard / Preferred Style:", ["Vancouver", "APA 7th", "IEEE", "MLA"])
     t1, t2, t3 = st.tabs(["🔗 DOI Entegrasyonu", "🔍 Global Arama", "📄 Akıllı PDF Analizi"])
     
     with t1:
@@ -158,6 +163,22 @@ if st.session_state.page == "🏠 Atıf Motoru":
         if st.button("🗑️ Tüm Kayıtları Temizle"):
             st.session_state.refs = []
             st.rerun()
+
+    # SIKÇA SORULAN SORULAR & NEDEN CITEMATE (EKLEME)
+    st.divider()
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.markdown(f"### ❓ {'Sıkça Sorulan Sorular' if st.session_state.lang == 'Türkçe' else 'FAQ'}")
+        with st.expander("DOI Nedir?"):
+            st.write("Dijital Nesne Tanımlayıcı (DOI), makalelerin internetteki kalıcı kimliğidir.")
+        with st.expander("Hangi formatlar destekleniyor?"):
+            st.write("Vancouver, APA 7, IEEE ve MLA standartlarını tam uyumlu destekliyoruz.")
+            
+    with col_b:
+        st.markdown(f"### 🚀 {'Neden Citemate Pro?' if st.session_state.lang == 'Türkçe' else 'Why Citemate Pro?'}")
+        st.write("* **Hız:** DOI ile saniyeler içinde atıf.")
+        st.write("* **Doğruluk:** Global Crossref veritabanı ile senkronize.")
+        st.write("* **Ücretsiz:** Araştırmacılar için tamamen ücretsiz erişim.")
 
 elif st.session_state.page == "💎 Profesyonel Hizmetler":
     st.markdown('<p class="main-title">Profesyonel Hizmetler</p>', unsafe_allow_html=True)
