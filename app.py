@@ -5,16 +5,16 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import fitz  # PyMuPDF
 import urllib.parse
-import streamlit.components.v10 as components
+# DÜZELTİLEN SATIR: v10 yerine v1 yazıldı
+import streamlit.components.v1 as components
 
 # ==========================================
 # 1. ANALYTICS & SAYFA YAPILANDIRMASI
 # ==========================================
-# DİKKAT: st.set_page_config her zaman İLK streamlit komutu olmalıdır!
-st.set_page_config(page_title="Citemate Ultimate v10.8", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="Citemate Ultimate v10.9", page_icon="🎓", layout="wide")
 
 def add_analytics():
-    # 'G-XXXXXXXXXX' kısmını Google Analytics'ten alacağın kodla değiştireceksin
+    # Buradaki G-XXXXXXXXXX kodunu Google Analytics panelinden alacaksın.
     ga_code = """
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
@@ -24,10 +24,9 @@ def add_analytics():
       gtag('config', 'G-XXXXXXXXXX');
     </script>
     """
-    # İstatistik kodunu sayfanın görünmez bir yerine gömer
     components.html(ga_code, height=0)
 
-# İstatistikleri toplamaya başla
+# İstatistikleri aktif et
 add_analytics()
 
 # ==========================================
@@ -37,12 +36,11 @@ if 'lang' not in st.session_state: st.session_state.lang = "Türkçe"
 if 'refs' not in st.session_state: st.session_state.refs = []
 if 'temp_search' not in st.session_state: st.session_state.temp_search = None
 
-# DİL SÖZLÜĞÜ
 languages = {
     "Türkçe": {
         "welcome": "Hoş Geldiniz!",
         "tutorial_title": "📖 Nasıl Kullanılır?",
-        "tutorial_text": "1. DOI, Başlık veya PDF ekleyin. 2. Format seçin. 3. Kaynakçayı kopyalayın, İndirin veya Paylaşın.",
+        "tutorial_text": "1. DOI, Başlık veya PDF ekleyin. 2. Format seçin. 3. Kaynakçayı kopyalayın veya Paylaşın.",
         "tab_doi": "🔗 DOI/Link", "tab_search": "🔍 Başlık", "tab_pdf": "📄 PDF",
         "add_btn": "➕ Kaynak Ekle", "cite_style": "📌 Atıf Formatı Seçin:",
         "share_results": "📋 Kaynakçayı Paylaş", "download_btn": "📥 Kaynakçayı İndir (.txt)",
@@ -64,7 +62,7 @@ languages = {
 }
 
 # ==========================================
-# 3. GÖRSEL TASARIM & ÜST PANEL
+# 3. GÖRSEL TASARIM
 # ==========================================
 st.markdown("""
     <style>
@@ -80,22 +78,18 @@ st.markdown("""
 
 col_header, col_lang = st.columns([7, 3])
 with col_header:
-    st.title("🎓 Citemate Pro v10.8")
+    st.title("🎓 Citemate Pro v10.9")
 
 with col_lang:
     st.write("") 
     c1, c2 = st.columns(2)
-    if c1.button("🇹🇷 Türkçe", key="btn_tr_v108"):
-        st.session_state.lang = "Türkçe"
-        st.rerun()
-    if c2.button("🇺🇸 English", key="btn_en_v108"):
-        st.session_state.lang = "English"
-        st.rerun()
+    if c1.button("🇹🇷 Türkçe", key="tr_v109"): st.session_state.lang = "Türkçe"; st.rerun()
+    if c2.button("🇺🇸 English", key="en_v109"): st.session_state.lang = "English"; st.rerun()
 
 L = languages[st.session_state.lang]
 
 # ==========================================
-# 4. AKADEMİK MOTOR FONKSİYONLARI
+# 4. AKADEMİK MOTOR (API + SCRAPING)
 # ==========================================
 def fetch_academic_data(query, is_doi=False):
     doi_pattern = r'10\.\d{4,9}/[-._;()/:A-Z0-9]+'
@@ -118,7 +112,7 @@ def fetch_academic_data(query, is_doi=False):
                     if field in item and item[field].get('date-parts'):
                         py = item[field]['date-parts'][0][0]
                         if py: year = str(py); break
-                return {"title": str(title), "author": str(auth_str), "year": year, "url": f"https://doi.org/{doi}" if is_doi else item.get('URL', query)}
+                return {"title": str(title), "author": str(auth_str), "year": year, "url": f"https://doi.org/{doi}"}
     except: pass
     return None
 
@@ -134,11 +128,10 @@ def process_pdf(file_bytes, filename):
     except: return None
 
 # ==========================================
-# 5. ANA İÇERİK & GİRİŞ/ÇIKTI
+# 5. GİRİŞ VE ÇIKTI
 # ==========================================
 with st.expander(L["tutorial_title"]): st.info(L["tutorial_text"])
-
-style = st.selectbox(L["cite_style"], ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"], key="style_v108")
+style = st.selectbox(L["cite_style"], ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"], key="style_v109")
 st.divider()
 
 col_in, col_out = st.columns([4, 6], gap="large")
@@ -148,69 +141,64 @@ with col_in:
     t_doi, t_search, t_pdf = st.tabs([L["tab_doi"], L["tab_search"], L["tab_pdf"]])
     
     with t_doi:
-        doi_in = st.text_input("DOI / URL:", key="input_doi_v108")
-        if st.button(L["add_btn"], key="btn_add_doi_v108"):
+        doi_in = st.text_input("DOI / URL:", key="doi_v109")
+        if st.button(L["add_btn"], key="btn_doi_v109"):
             if doi_in.strip():
                 with st.spinner("Analyzing..."):
                     res = fetch_academic_data(doi_in, is_doi=True)
                     if res: st.session_state.refs.append(res); st.rerun()
                     else:
                         st.session_state.refs.append({"title": doi_in, "author": "Web", "year": "2026", "url": doi_in})
-                        st.warning("Metadata not found, added as link."); st.rerun()
+                        st.warning("Added as link."); st.rerun()
 
     with t_search:
-        title_q = st.text_input(L["tab_search"] + ":", key="input_q_v108")
-        if st.button("🔍 Search", key="btn_search_v108"):
-            if title_q.strip():
-                with st.spinner("Searching..."):
-                    res = fetch_academic_data(title_q, is_doi=False)
-                    if res: st.session_state.temp_search = res
-                    else: st.error("Not found.")
-        
+        title_q = st.text_input(L["tab_search"] + ":", key="q_v109")
+        if st.button("🔍 Search", key="btn_q_v109"):
+            res = fetch_academic_data(title_q, is_doi=False)
+            if res: st.session_state.temp_search = res
         if st.session_state.temp_search:
             st.markdown('<div class="result-box">', unsafe_allow_html=True)
             st.write(f"**{st.session_state.temp_search['title']}**")
             st.write(f"{st.session_state.temp_search['author']} ({st.session_state.temp_search['year']})")
             st.markdown('</div>', unsafe_allow_html=True)
-            c_y, c_n = st.columns(2)
-            if c_y.button(L["confirm_btn"], key="conf_v108"):
+            cy, cn = st.columns(2)
+            if cy.button(L["confirm_btn"], key="y_v109"):
                 st.session_state.refs.append(st.session_state.temp_search)
                 st.session_state.temp_search = None; st.rerun()
-            if c_n.button(L["cancel_btn"], key="canc_v108"):
+            if cn.button(L["cancel_btn"], key="n_v109"):
                 st.session_state.temp_search = None; st.rerun()
 
     with t_pdf:
-        pf = st.file_uploader(L["tab_pdf"], type="pdf", key="pdf_up_v108")
-        if pf and st.button("📄 Analyze PDF", key="btn_pdf_v108"):
+        pf = st.file_uploader(L["tab_pdf"], type="pdf", key="pdf_v109")
+        if pf and st.button("📄 Analyze PDF", key="btn_pdf_v109"):
             res = process_pdf(pf.read(), pf.name)
             if res: st.session_state.refs.append(res); st.rerun()
 
 with col_out:
     st.header("📋 Results")
     if st.session_state.refs:
-        all_bib_text = ""
-        tab_list, tab_intext = st.tabs(["📋 Bibliography", "🖋️ In-text"])
-        with tab_list:
+        all_txt = ""
+        tab_l, tab_i = st.tabs(["📋 Bibliography", "🖋️ In-text"])
+        with tab_l:
             for i, r in enumerate(st.session_state.refs, 1):
                 auth, titl, yr, link = r.get('author'), r.get('title'), r.get('year'), r.get('url')
                 if style == "Vancouver": cite = f"{i}. {auth}. {titl}. {yr}. {link}"
                 elif style == "APA 7th": cite = f"{auth} ({yr}). {titl}. {link}"
                 else: cite = f"[{i}] {auth}, \"{titl}\", {yr}. {link}"
                 st.code(cite)
-                all_bib_text += cite + "\n\n"
-        with tab_intext:
+                all_txt += cite + "\n\n"
+        with tab_i:
             for i, r in enumerate(st.session_state.refs, 1):
                 intext = f"({i})" if style == "Vancouver" else f"({r.get('author')}, {r.get('year')})"
                 st.markdown(f'<div class="intext-box">{intext} ({r.get("title")[:30]}...)</div>', unsafe_allow_html=True)
 
         st.divider()
-        st.download_button(label=L["download_btn"], data=all_bib_text, file_name=f"kaynakca.txt", use_container_width=True)
-        st.write("")
-        encoded_res = urllib.parse.quote(f"Citemate Results:\n\n" + all_bib_text)
+        st.download_button(label=L["download_btn"], data=all_txt, file_name="references.txt", use_container_width=True)
+        encoded_res = urllib.parse.quote(f"Citemate Results:\n\n" + all_txt)
         cw, cm = st.columns(2)
         cw.markdown(f'<a href="https://api.whatsapp.com/send?text={encoded_res}" target="_blank" class="share-wa">{L["wa_share"]}</a>', unsafe_allow_html=True)
         cm.markdown(f'<a href="mailto:?subject=Bibliography&body={encoded_res}" class="share-mail">{L["mail_share"]}</a>', unsafe_allow_html=True)
-        if st.button("🗑️ Clear All", key="clear_v108", use_container_width=True):
+        if st.button("🗑️ Clear All", key="clear_v109", use_container_width=True):
             st.session_state.refs = []; st.rerun()
     else: st.info("No sources.")
 
