@@ -2,16 +2,17 @@ import streamlit as st
 import requests
 import re
 import fitz  # PyMuPDF
+import base64
 
 # ==========================================
-# 1. SAYFA YAPILANDIRMASI
+# 1. SAYFA YAPILANDIRMASI & SEO
 # ==========================================
 st.set_page_config(page_title="Citemate Pro | Elite Academic Citation", page_icon="🎓", layout="wide")
 
 # ==========================================
-# 2. LOGO VE GÖRSEL YÖNETİMİ (Kritik Bölüm)
+# 2. LOGO VE GÖRSEL YÖNETİMİ
 # ==========================================
-# Logonun GitHub üzerindeki doğrudan linki (Bu link her zaman çalışır)
+# Logonun GitHub üzerindeki doğrudan linki
 LOGO_URL = "https://raw.githubusercontent.com/sajjadeslamkhah/citemate-app/main/Logo.jpg"
 
 # ==========================================
@@ -31,18 +32,17 @@ st.markdown(f"""
     .main-title {{ font-size: 58px !important; font-weight: 900 !important; color: #34d399; margin-bottom: 0px; }}
     .info-box {{ background-color: rgba(52, 211, 153, 0.05); padding: 22px; border-radius: 12px; border: 1px dashed rgba(52, 211, 153, 0.3); margin-bottom: 35px; }}
     .service-card {{ background: #161b22; padding: 25px; border-radius: 18px; border-top: 4px solid #34d399; margin-bottom: 20px; min-height: 220px; }}
-    .sidebar-logo-container {{ text-align: center; margin-bottom: 20px; }}
-    .sidebar-logo-img {{ width: 180px; border-radius: 15px; box-shadow: 0px 4px 20px rgba(52, 211, 153, 0.2); }}
     .footer {{ color: #64748b; font-size: 14px; text-align: center; margin-top: 60px; padding: 20px; border-top: 1px solid #1e293b; }}
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 5. YAN MENÜ (NAVİGASYON & LOGO)
+# 5. YAN MENÜ (NAVİGASYON & LOGO ENTEGRASYONU)
 # ==========================================
 with st.sidebar:
-    # Logo Gösterimi (Link üzerinden - En Güvenli Yol)
+    # BURASI GÜNCELLENDİ: Yazı silindi, yerine logo eklendi.
     st.image(LOGO_URL, use_container_width=True)
+    
     st.divider()
     
     # Dil Seçimi
