@@ -22,7 +22,7 @@ def add_seo():
 add_seo()
 
 # ==========================================
-# 2. HAFIZA BAŞLATMA
+# 2. HAFIZA BAŞLATMA (KRİTİK HATA ÇÖZÜMÜ)
 # ==========================================
 if 'refs' not in st.session_state:
     st.session_state.refs = []
@@ -31,9 +31,8 @@ if 'page' not in st.session_state:
     st.session_state.page = "🏠 Atıf Motoru"
 
 # ==========================================
-# 3. TASARIM VE İLETİŞİM AYARI
+# 3. TASARIM VE KURUMSAL KİMLİK
 # ==========================================
-# Senin e-posta adresin burada tanımlı:
 MY_EMAIL = "mbgsajjad@gmail.com"
 
 st.markdown(f"""
@@ -45,6 +44,7 @@ st.markdown(f"""
     .contact-container {{ background: #1e293b; padding: 18px; border-radius: 15px; margin-top: 25px; border: 1px solid #334155; }}
     .contact-btn {{ display: block; background: #34d399; color: black !important; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; margin-top: 10px; transition: 0.3s ease; }}
     .contact-btn:hover {{ background: #10b981; transform: translateY(-2px); }}
+    .info-box {{ background-color: rgba(52, 211, 153, 0.05); padding: 20px; border-radius: 12px; border: 1px dashed rgba(52, 211, 153, 0.3); margin-bottom: 35px; }}
     .service-card {{ background: #161b22; padding: 30px; border-radius: 18px; border-top: 5px solid #34d399; margin-bottom: 25px; }}
     .feature-tag {{ background: #064e3b; color: #34d399; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-right: 6px; text-transform: uppercase; }}
     .footer {{ color: #64748b; font-size: 14px; text-align: center; margin-top: 80px; padding: 25px; border-top: 1px solid #1e293b; }}
@@ -52,14 +52,15 @@ st.markdown(f"""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. YAN MENÜ
+# 4. YAN MENÜ (NAVİGASYON & İLETİŞİM)
 # ==========================================
 with st.sidebar:
     st.markdown('<p class="sidebar-brand">🎓 Citemate Pro</p>', unsafe_allow_html=True)
     st.caption("Elite Academic Solutions | Powered by Lifegenix")
     st.divider()
     
-    st.session_state.page = st.radio("SİSTEM MENÜSÜ", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"], label_visibility="collapsed")
+    selection = st.radio("SİSTEM MENÜSÜ", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"], label_visibility="collapsed")
+    st.session_state.page = selection
     
     st.markdown(f"""
         <div class="contact-container">
@@ -82,18 +83,18 @@ def get_cite(query, is_doi=False):
         if res.status_code == 200:
             d = res.json()['message']
             item = d['items'][0] if 'items' in d else d
-            auth = item.get('author', [{{'family': 'Anonim'}}])[0].get('family')
+            auth = item.get('author', [{'family': 'Anonim'}])[0].get('family')
             if len(item.get('author', [])) > 1: auth += " et al."
             year = "2026"
             if 'published-print' in item: year = str(item['published-print']['date-parts'][0][0])
-            return {{"title": item.get('title', [''])[0], "author": auth, "year": year, "url": f"https://doi.org/{{query}}"}}
+            return {"title": item.get('title', [''])[0], "author": auth, "year": year, "url": f"https://doi.org/{query}" if is_doi else "https://doi.org/"}
     except: return None
 
 def process_pdf(file_bytes):
     try:
         doc = fitz.open(stream=file_bytes, filetype="pdf")
         text = "".join([doc[i].get_text() for i in range(min(len(doc), 3))])
-        doi_match = re.search(r'10\.\d{{4,9}}/[-._;()/:A-Z0-9]+', text, re.I)
+        doi_match = re.search(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', text, re.I)
         if doi_match: return get_cite(doi_match.group().strip("/"), is_doi=True)
     except: pass
     return None
@@ -105,6 +106,18 @@ def process_pdf(file_bytes):
 if st.session_state.page == "🏠 Atıf Motoru":
     st.markdown('<p class="main-title">🎓 Citemate Pro</p>', unsafe_allow_html=True)
     st.markdown('<p class="sub-title">Akademik Mükemmeliyet İçin Kusursuz Atıf Yönetimi</p>', unsafe_allow_html=True)
+
+    # ŞEFFAF BİLGİLENDİRME MESAJI
+    st.markdown("""
+        <div class="info-box">
+            <p style="color: #e2e8f0; font-size: 16px; line-height: 1.6; margin-bottom: 0;">
+                <b>Citemate Pro</b>, araştırmacıların ve öğrencilerin kaynakça hazırlama yükünü hafifletmek için tasarlanmış, 
+                yapay zeka destekli bir <b>atıf düzenleme motorudur.</b> DOI numarası, yayın başlığı veya doğrudan PDF dosyanızı 
+                kullanarak saniyeler içinde hatasız; Vancouver, APA, IEEE ve MLA formatlarında profesyonel referanslar oluşturur. 
+                Karmaşık akademik standartları otomatiğe bağlayarak, enerjinizi sadece araştırmanıza odaklamanızı sağlar.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
 
     style = st.selectbox("Tercih Edilen Standard:", ["Vancouver", "APA 7th", "IEEE", "MLA"])
     t1, t2, t3 = st.tabs(["🔗 DOI Entegrasyonu", "🔍 Global Arama", "📄 Akıllı PDF Analizi"])
@@ -118,7 +131,7 @@ if st.session_state.page == "🏠 Atıf Motoru":
                 st.rerun()
 
     with t2:
-        q_in = st.text_input("Yayın Başlığı:", placeholder="Makale adını giriniz...")
+        q_in = st.text_input("Yayın Başlığı:", placeholder="Tam başlık giriniz...")
         if st.button("Veritabanında Ara", key="btn_q"):
             res = get_cite(q_in, False)
             if res: 
@@ -132,13 +145,13 @@ if st.session_state.page == "🏠 Atıf Motoru":
             if res: 
                 st.session_state.refs.append(res)
                 st.rerun()
-            else: st.warning("Dosyada DOI bulunamadı.")
+            else: st.warning("Dosyada DOI tanımlayıcı bulunamadı.")
     
     if len(st.session_state.refs) > 0:
         st.divider()
         txt_out = ""
         for i, r in enumerate(st.session_state.refs, 1):
-            cite = f"{{i}}. {{r['author']}}. {{r['title']}}. {{r['year']}}." if style == "Vancouver" else f"{{r['author']}} ({{r['year']}}). {{r['title']}}."
+            cite = f"{i}. {r['author']}. {r['title']}. {r['year']}." if style == "Vancouver" else f"{r['author']} ({r['year']}). {r['title']}."
             st.code(cite)
             txt_out += cite + "\n"
         st.download_button("📥 Kaynakçayı Dışa Aktar (.txt)", txt_out, use_container_width=True)
@@ -160,7 +173,7 @@ elif st.session_state.page == "💎 Profesyonel Hizmetler":
         </div>
         <div class="service-card">
             <h3>🤖 Sağlıkta Makine Öğrenimi</h3>
-            <p>Klinik ve omik veriler kullanılarak geliştirilen hastalık tahmin ve yapay zeka modelleri.</p>
+            <p>Klinik ve omik veriler kullanılarak geliştirilen hastalık tahmin, sınıflandırma ve yapay zeka modelleri.</p>
             <span class="feature-tag">Python</span><span class="feature-tag">ML / AI</span>
         </div>
         """, unsafe_allow_html=True)
@@ -168,7 +181,7 @@ elif st.session_state.page == "💎 Profesyonel Hizmetler":
         st.markdown(f"""
         <div class="service-card">
             <h3>📊 Büyük Veri Analitiği</h3>
-            <p>Büyük ölçekli akademik verilerin Python tabanlı ileri istatistiksel raporlanması.</p>
+            <p>Büyük ölçekli akademik verilerin Python tabanlı ileri istatistiksel raporlanması ve görselleştirilmesi.</p>
             <span class="feature-tag">Big Data</span><span class="feature-tag">Python</span>
         </div>
         <div class="service-card">
@@ -178,4 +191,7 @@ elif st.session_state.page == "💎 Profesyonel Hizmetler":
         </div>
         """, unsafe_allow_html=True)
 
+# ==========================================
+# 7. FOOTER
+# ==========================================
 st.markdown('<div class="footer">© 2026 Lifegenix Danışmanlık tarafından kurulmuştur. <br> Akademik dürüstlük ve teknolojik üstünlük ilkesiyle.</div>', unsafe_allow_html=True)
