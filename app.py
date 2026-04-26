@@ -15,8 +15,12 @@ def add_analytics():
     # Google Analytics Ölçüm Kimliğin
     ga_id = "G-90YJBXFY8W" 
     
-    # Google Analytics Entegrasyonu
+    # Google Search Console Doğrulama Kodu
+    google_verification = '<meta name="google-site-verification" content="PjsiKrJtJ7MoRpZcOG1IK3VZpNh6WMGmMcnk6OIAHfE" />'
+    
+    # Google Analytics & SEO Entegrasyonu
     ga_code = f"""
+        {google_verification}
         <iframe src="https://www.googletagmanager.com/ns.html?id={ga_id}"
                 height="0" width="0" style="display:none;visibility:hidden"></iframe>
         <script async src="https://www.googletagmanager.com/gtag/js?id={ga_id}"></script>
@@ -29,7 +33,7 @@ def add_analytics():
     """
     st.components.v1.html(ga_code, height=0)
 
-# İstatistikleri başlat
+# İstatistikleri ve SEO Doğrulamayı başlat
 add_analytics()
 
 # ==========================================
