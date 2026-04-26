@@ -5,7 +5,7 @@ from datetime import datetime
 import fitz  # PyMuPDF
 
 # 1. SAYFA AYARLARI
-st.set_page_config(page_title="Citemate Pro v9.2", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="Citemate Pro v9.3", page_icon="🎓", layout="wide")
 
 st.markdown("""
     <style>
@@ -22,35 +22,34 @@ st.markdown("""
 if 'refs' not in st.session_state: st.session_state.refs = []
 if 'temp_search' not in st.session_state: st.session_state.temp_search = None
 
-# 3. GÜVENLİ VERİ ÇEKME FONKSİYONLARI
+# 3. GÜVENLİ VERİ ÇEKME
 def fetch_crossref(query, is_doi=False):
     url = f"https://api.crossref.org/works/{query}" if is_doi else f"https://api.crossref.org/works?query={query}&rows=1"
     try:
         res = requests.get(url, timeout=10)
         if res.status_code != 200: return None
-        data = res.json()['message']
-        item = data['items'][0] if 'items' in data else data
+        data = res.json().get('message', {})
+        item = data.get('items', [data])[0] if 'items' in data or data else data
+        if not item: return None
         
-        # Verileri güvenli şekilde al (None hatasını önler)
-        title = item.get('title', ['Başlık Bulunamadı'])[0]
+        # Veri temizleme ve çekme
+        title = item.get('title', ['Başlık Yok'])[0]
         authors = item.get('author', [])
-        
         author_str = "Anonim"
         if authors:
             author_str = authors[0].get('family') or authors[0].get('literal') or "Anonim"
             if len(authors) > 1: author_str += " et al."
         
+        year = datetime.now().year
         try:
-            # Farklı tarih formatlarını dene
-            year = item.get('created', {}).get('date-parts', [[2026]])[0][0]
-        except:
-            year = datetime.now().year
+            date_parts = item.get('created', {}).get('date-parts', [[year]])
+            year = date_parts[0][0]
+        except: pass
             
         doi = f"https://doi.org/{item.get('DOI')}" if item.get('DOI') else item.get('URL', 'Link Yok')
         
         return {"title": str(title), "author": str(author_str), "year": str(year), "url": str(doi)}
-    except Exception as e:
-        return None
+    except: return None
 
 def process_pdf(file_bytes, filename):
     try:
@@ -64,7 +63,7 @@ def process_pdf(file_bytes, filename):
     except: return None
 
 # 4. ARAYÜZ
-st.title("🎓 Citemate Pro v9.2")
+st.title("🎓 Citemate Pro v9.3")
 style = st.selectbox("📌 Atıf Formatı:", ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"])
 
 col_in, col_out = st.columns([4, 6], gap="large")
@@ -81,10 +80,10 @@ with col_in:
                 if res: st.session_state.temp_search = res
                 else: st.error("Bulunamadı.")
         
-        if st.session_state.temp_search:
+        if st.session_state.temp_search and isinstance(st.session_state.temp_search, dict):
             st.markdown('<div class="result-box">', unsafe_allow_html=True)
             st.write(f"**Başlık:** {st.session_state.temp_search.get('title')}")
-            st.write(f"**Yazar:** {st.session_state.temp_search.get('author')} | **Yıl:** {st.session_state.temp_search.get('year')}")
+            st.write(f"**Yazar:** {st.session_state.temp_search.get('author')}")
             st.markdown('</div>', unsafe_allow_html=True)
             if st.button("✅ Onayla"):
                 st.session_state.refs.append(st.session_state.temp_search)
@@ -94,10 +93,10 @@ with col_in:
     with t_link:
         url_in = st.text_input("DOI veya URL:")
         if st.button("➕ Ekle"):
-            doi_match = re.search(r'10\.\d{4,}/[^\s\)]+', url_in, re.I)
-            res = fetch_crossref(doi_match.group().strip("/"), is_doi=True) if doi_match else {"title": url_in, "author": "Web", "year": "2026", "url": url_in}
-            st.session_state.refs.append(res)
-            st.rerun()
+            if url_in.strip():
+                doi_match = re.search(r'10\.\d{4,}/[^\s\)]+', url_in, re.I)
+                res = fetch_crossref(doi_match.group().strip("/"), is_doi=True) if doi_match else {"title": url_in, "author": "Web", "year": "2026", "url": url_in}
+                if res: st.session_state.refs.append(res); st.rerun()
 
     with t_pdf:
         pdf_file = st.file_uploader("PDF Yükle", type="pdf")
@@ -113,7 +112,9 @@ with col_out:
         
         with tab_bib:
             for i, r in enumerate(st.session_state.refs, 1):
-                # Hata önleyici güvenli veri çekimi (.get)
+                # KRİTİK DÜZELTME: Verinin sözlük olduğundan emin ol
+                if not isinstance(r, dict): continue
+                
                 auth = r.get('author', 'Anonim')
                 titl = r.get('title', 'Başlık Yok')
                 year = r.get('year', '2026')
@@ -128,6 +129,7 @@ with col_out:
         
         with tab_intext:
             for i, r in enumerate(st.session_state.refs, 1):
+                if not isinstance(r, dict): continue
                 intext = f"({i})" if style == "Vancouver" else f"({r.get('author', 'Anonim')}, {r.get('year', '2026')})"
                 st.markdown(f'<div class="intext-box">{intext}</div>', unsafe_allow_html=True)
         
