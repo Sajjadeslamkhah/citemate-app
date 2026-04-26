@@ -5,16 +5,16 @@ from datetime import datetime
 import fitz  # PyMuPDF
 
 # ==========================================
-# 1. SAYFA YAPILANDIRMASI & SEO (GÜÇLENDİRİLMİŞ)
+# 1. SAYFA YAPILANDIRMASI & SEO
 # ==========================================
-st.set_page_config(page_title="Citemate Pro | Lifegenix Data Insights", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="Citemate Pro | Elite Citation Intelligence", page_icon="🎓", layout="wide")
 
 def add_seo():
     ga_id = "G-90YJBXFY8W" 
     google_verification = '<meta name="google-site-verification" content="PjsiKrJtJ7MoRpZcOG1IK3VZpNh6WMGmMcnk6OIAHfE" />'
     meta_tags = """
-        <meta name="description" content="Lifegenix Labs: Python tabanlı biyoinformatik, sağlıkta makine öğrenimi ve TCGA/GEO veri analizi çözümleri.">
-        <meta name="keywords" content="TCGA veri analizi, GEO biyoinformatik, sağlıkta makine öğrenimi, python akademik analiz, büyük veri genetik">
+        <meta name="description" content="Citemate Pro: Akademik makaleleriniz için kusursuz Vancouver, APA ve IEEE atıf düzenleme motoru.">
+        <meta name="keywords" content="atıf düzenleme, kaynakça oluşturucu, vancouver style, apa 7th, akademik referans motoru, lifegenix">
     """
     ga_code = f"{google_verification}{meta_tags}<script async src='https://www.googletagmanager.com/gtag/js?id={ga_id}'></script><script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','{ga_id}');</script>"
     st.components.v1.html(ga_code, height=0)
@@ -22,43 +22,55 @@ def add_seo():
 add_seo()
 
 # ==========================================
-# 2. TASARIM (PREMIUM DARK MODE)
+# 2. HAFIZA BAŞLATMA
+# ==========================================
+if 'refs' not in st.session_state: st.session_state.refs = []
+if 'page' not in st.session_state: st.session_state.page = "🏠 Atıf Motoru"
+
+# ==========================================
+# 3. TASARIM (PRESTİJ ODAKLI)
 # ==========================================
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; }
-    .main-title { font-size: 56px !important; font-weight: 850 !important; color: #34d399; text-shadow: 0px 0px 20px rgba(52, 211, 153, 0.3); margin-bottom: 5px; }
-    .sub-title { color: #94a3b8; font-size: 20px; margin-bottom: 40px; font-style: italic; }
-    .sidebar-brand { font-size: 26px !important; font-weight: bold; color: #34d399; }
-    .service-card { background: #161b22; padding: 25px; border-radius: 15px; border-top: 4px solid #34d399; margin-bottom: 20px; }
-    .feature-tag { background: #064e3b; color: #34d399; padding: 4px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; margin-right: 5px; }
-    .footer { color: #4b5563; font-size: 13px; text-align: center; margin-top: 60px; padding: 20px; border-top: 1px solid #1e293b; }
-    .contact-link { display: block; background: #34d399; color: black !important; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; margin-top: 10px; }
+    .main-title { font-size: 62px !important; font-weight: 900 !important; color: #34d399; text-shadow: 0px 0px 25px rgba(52, 211, 153, 0.4); margin-bottom: 0px; letter-spacing: -1px; }
+    .sub-title { color: #f8fafc; font-size: 22px; margin-bottom: 45px; font-weight: 300; letter-spacing: 1px; }
+    .sidebar-brand { font-size: 28px !important; font-weight: bold; color: #34d399; margin-bottom: 10px; }
+    .contact-container { background: #1e293b; padding: 18px; border-radius: 15px; margin-top: 25px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    .contact-btn { display: block; background: #34d399; color: black !important; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; margin-top: 10px; transition: 0.3s ease; }
+    .contact-btn:hover { background: #10b981; transform: translateY(-2px); }
+    .service-card { background: #161b22; padding: 30px; border-radius: 18px; border-top: 5px solid #34d399; margin-bottom: 25px; transition: 0.2s; }
+    .service-card:hover { border-color: #10b981; }
+    .feature-tag { background: #064e3b; color: #34d399; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-right: 6px; text-transform: uppercase; }
+    .footer { color: #64748b; font-size: 14px; text-align: center; margin-top: 80px; padding: 25px; border-top: 1px solid #1e293b; }
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. YAN MENÜ & NAVİGASYON
+# 4. YAN MENÜ (BÜTÜNLEŞİK YAPI)
 # ==========================================
-if 'page' not in st.session_state: st.session_state.page = "Ana Sayfa"
-
 with st.sidebar:
     st.markdown('<p class="sidebar-brand">🎓 Citemate Pro</p>', unsafe_allow_html=True)
-    st.caption("Advanced Academic Intelligence")
+    st.caption("Elite Academic Solutions | Powered by Lifegenix")
     st.divider()
     
-    page = st.radio("Navigasyon", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"])
-    st.session_state.page = page
+    # Navigasyon
+    st.session_state.page = st.radio("SİSTEM MENÜSÜ", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"], label_visibility="collapsed")
     
-    st.divider()
-    st.subheader("📬 İletişim")
-    st.markdown('<a href="mailto:iletisim@lifegenix.com" class="contact-link">📧 Mesaj Gönder</a>', unsafe_allow_html=True)
+    # Navigasyona Entegre İletişim Bloğu
+    st.markdown("""
+        <div class="contact-container">
+            <p style="color: #34d399; font-weight: bold; margin-bottom: 5px; font-size: 17px;">📩 Bize Ulaşın</p>
+            <p style="color: #94a3b8; font-size: 13px;">Akademik iş birliği ve kurumsal analiz teklifleri için ulaşın.</p>
+            <a href="mailto:iletisim@lifegenix.com" class="contact-btn">✉️ Mesaj Gönder</a>
+        </div>
+    """, unsafe_allow_html=True)
     
     st.divider()
     st.markdown("© 2026 **Lifegenix Danışmanlık**<br>Tüm hakları saklıdır.", unsafe_allow_html=True)
 
 # ==========================================
-# 4. FONKSİYONLAR
+# 5. MOTOR FONKSİYONLARI
 # ==========================================
 def get_cite(query, is_doi=False):
     try:
@@ -71,85 +83,97 @@ def get_cite(query, is_doi=False):
             if len(item.get('author', [])) > 1: auth += " et al."
             year = "2026"
             if 'published-print' in item: year = str(item['published-print']['date-parts'][0][0])
-            return {"title": item.get('title', [''])[0], "author": auth, "year": year, "url": f"https://doi.org/{query}" if is_doi else "https://doi.org/"}
+            return {"title": item.get('title', [''])[0], "author": auth, "year": year, "url": f"https://doi.org/{query}"}
     except: return None
 
+def process_pdf(file_bytes):
+    try:
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+        text = "".join([doc[i].get_text() for i in range(min(len(doc), 3))])
+        doi_match = re.search(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', text, re.I)
+        if doi_match: return get_cite(doi_match.group().strip("/"), is_doi=True)
+    except: pass
+    return None
+
 # ==========================================
-# 5. SAYFA İÇERİKLERİ
+# 6. SAYFA İÇERİKLERİ
 # ==========================================
 
 if st.session_state.page == "🏠 Atıf Motoru":
     st.markdown('<p class="main-title">🎓 Citemate Pro</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">Büyük Veri ve Sağlık Teknolojileri İçin Akademik Referans Motoru</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">Akademik Mükemmeliyet İçin Kusursuz Atıf Yönetimi</p>', unsafe_allow_html=True)
 
-    style = st.selectbox("Format:", ["Vancouver", "APA 7th", "IEEE", "MLA"])
-    t1, t2, t3 = st.tabs(["🔗 DOI Entegrasyonu", "🔍 Başlık Arama", "📄 Akıllı PDF Analizi"])
+    style = st.selectbox("Tercih Edilen Atıf Standardı:", ["Vancouver", "APA 7th", "IEEE", "MLA"])
+    t1, t2, t3 = st.tabs(["🔗 DOI Entegrasyonu", "🔍 Global Arama", "📄 Akıllı PDF Analizi"])
     
     with t1:
-        doi = st.text_input("DOI Girin:")
-        if st.button("Listeye Ekle"):
-            res = get_cite(doi, True)
+        doi_in = st.text_input("DOI Numarası:", placeholder="Örn: 10.1016/j.cell.2024...")
+        if st.button("Kaynağı Listeye İşle", key="btn_doi"):
+            res = get_cite(doi_in, True)
             if res: st.session_state.refs.append(res); st.rerun()
 
     with t2:
-        q = st.text_input("Makale Başlığı:")
-        if st.button("Ara ve Ekle"):
-            res = get_cite(q, False)
+        q_in = st.text_input("Makale veya Yayın Başlığı:", placeholder="Tam başlık giriniz...")
+        if st.button("Veritabanında Ara", key="btn_q"):
+            res = get_cite(q_in, False)
             if res: st.session_state.refs.append(res); st.rerun()
 
     with t3:
-        f = st.file_uploader("PDF Yükle", type="pdf")
-        st.caption("Makale metadata verileri otomatik analiz edilir.")
+        f = st.file_uploader("PDF Formatındaki Yayını Yükle", type="pdf")
+        if f and st.button("Metadataları Çözümle"):
+            res = process_pdf(f.read())
+            if res: st.session_state.refs.append(res); st.rerun()
+            else: st.warning("Dosya içerisinde DOI tanımlayıcı bulunamadı.")
     
     if st.session_state.refs:
         st.divider()
-        txt = ""
+        txt_out = ""
         for i, r in enumerate(st.session_state.refs, 1):
             cite = f"{i}. {r['author']}. {r['title']}. {r['year']}." if style == "Vancouver" else f"{r['author']} ({r['year']}). {r['title']}."
             st.code(cite)
-            txt += cite + "\n"
-        st.download_button("📥 Kaynakçayı İndir", txt)
-        if st.button("🗑️ Temizle"): st.session_state.refs = []; st.rerun()
+            txt_out += cite + "\n"
+        st.download_button("📥 Kaynakçayı Dışa Aktar (.txt)", txt_out, use_container_width=True)
+        if st.button("🗑️ Tüm Kayıtları Temizle"): st.session_state.refs = []; st.rerun()
 
-    # SSS VE SEO ALANI
+    # REHBER BÖLÜMÜ
     st.divider()
-    with st.expander("❓ Sıkça Sorulan Sorular"):
-        st.write("**Citemate Pro güvenli mi?** Tüm veriler Crossref API üzerinden doğrulanır.")
-        st.write("**Python desteği var mı?** Evet, sistemimiz Python tabanlı veri çekme algoritmalarıyla çalışır.")
+    with st.expander("📚 Atıf Yönetim Rehberi"):
+        st.write("**Neden Citemate Pro?** Global akademik veritabanlarıyla anlık senkronize çalışarak hata payını sıfıra indirir.")
+        st.write("**Doğruluk Oranı:** Tüm çekilen veriler Crossref ve Metadata standartlarına uygundur.")
 
 elif st.session_state.page == "💎 Profesyonel Hizmetler":
     st.markdown('<p class="main-title">Profesyonel Hizmetler</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">Lifegenix Danışmanlık: Veriden Yayına Akademik Çözümler</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">Lifegenix Danışmanlık: Veriden Yayına Stratejik Çözümler</p>', unsafe_allow_html=True)
     
     c1, c2 = st.columns(2)
     with c1:
         st.markdown(f"""
         <div class="service-card">
             <h3>🧬 Genetik Veri Analizi</h3>
-            <p>NCBI, GEO ve TCGA gibi büyük veri setlerinin işlenmesi, fenotip-genotip ilişkilendirmesi.</p>
+            <p>NCBI, GEO ve TCGA büyük veri setlerinin Python tabanlı işlenmesi ve fenotip-genotip ilişkilendirmesi.</p>
             <span class="feature-tag">TCGA</span><span class="feature-tag">GEO</span><span class="feature-tag">NCBI</span>
         </div>
         <div class="service-card">
             <h3>🤖 Sağlıkta Makine Öğrenimi</h3>
-            <p>Klinik veriler ve omik veriler kullanılarak hastalık tahmini ve sınıflandırma modelleri.</p>
-            <span class="feature-tag">Python</span><span class="feature-tag">Deep Learning</span>
+            <p>Klinik ve omik veriler kullanılarak geliştirilen hastalık tahmin, sınıflandırma ve yapay zeka modelleri.</p>
+            <span class="feature-tag">Python</span><span class="feature-tag">ML / AI</span>
         </div>
         """, unsafe_allow_html=True)
     with c2:
         st.markdown(f"""
         <div class="service-card">
             <h3>📊 Büyük Veri Analitiği</h3>
-            <p>Büyük ölçekli akademik verilerin Python tabanlı kütüphanelerle istatistiksel raporlanması.</p>
-            <span class="feature-tag">Big Data</span><span class="feature-tag">Statistics</span>
+            <p>Büyük ölçekli akademik verilerin Python tabanlı ileri istatistiksel raporlanması ve görselleştirilmesi.</p>
+            <span class="feature-tag">Big Data Analytics</span><span class="feature-tag">Python</span>
         </div>
         <div class="service-card">
-            <h3>🖋️ Referans Yazımı</h3>
-            <p>Karmaşık makale ve tezlerin referans yönetiminin Lifegenix uzmanlığıyla düzenlenmesi.</p>
-            <span class="feature-tag">Professional Review</span>
+            <h3>🖋️ Referans Yazımı & Editoryal</h3>
+            <p>Karmaşık makale ve tezlerin referans yönetiminin Lifegenix uzmanlığıyla yüksek standartta düzenlenmesi.</p>
+            <span class="feature-tag">Editorial Review</span>
         </div>
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 6. FOOTER
+# 7. FOOTER
 # ==========================================
 st.markdown('<div class="footer">© 2026 Lifegenix Danışmanlık tarafından kurulmuştur. <br> Akademik dürüstlük ve teknolojik üstünlük ilkesiyle.</div>', unsafe_allow_html=True)
