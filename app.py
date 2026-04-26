@@ -1,134 +1,104 @@
 import streamlit as st
 import requests
-from bs4 import BeautifulSoup
+import fitz  # PyMuPDF
+import re
 from datetime import datetime
 
 # 1. SAYFA YAPILANDIRMASI
-st.set_page_config(page_title="Citemate Pro v6", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="Citemate AI Engine", page_icon="🧬", layout="wide")
 
-# 2. GELİŞMİŞ GÖRSEL AYARLAR (Okunabilirlik Odaklı)
+# 2. CSS - OKUNABİLİRLİK ODAKLI
 st.markdown("""
     <style>
+    .main { background-color: #0e1117; }
     h1, h2, h3, p, span, label { color: #ffffff !important; }
-    .stTabs [data-baseweb="tab-list"] button { color: white; font-size: 16px; }
-    .cite-card {
-        background-color: #1e1e1e;
-        padding: 15px;
-        border-radius: 10px;
-        border: 1px solid #34d399;
-        margin-bottom: 10px;
-    }
-    .copy-area {
-        background-color: #000000;
-        color: #10b981 !important;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px dashed #10b981;
-        font-family: monospace;
-    }
+    .cite-card { background-color: #1e1e1e; padding: 15px; border-radius: 10px; border: 1px solid #34d399; margin-bottom: 10px; }
+    code { color: #10b981 !important; font-size: 14px; }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. HAFIZA YÖNETİMİ
 if 'refs' not in st.session_state: st.session_state.refs = []
 
-# 4. YARDIMCI FONKSİYONLAR
-def get_metadata(url):
+# 3. AKILLI VERİ ÇEKME FONKSİYONLARI (AI & API)
+def fetch_metadata_from_doi(doi):
+    """DOI numarasını Crossref API üzerinden sorgular."""
+    url = f"https://api.crossref.org/works/{doi}"
     try:
-        res = requests.get(url, timeout=5, headers={'User-Agent': 'Mozilla/5.0'})
-        soup = BeautifulSoup(res.text, 'html.parser')
-        return soup.title.string.strip() if soup.title else "Bilinmeyen Kaynak"
-    except: return "Web Kaynağı"
+        res = requests.get(url, timeout=5)
+        if res.status_code == 200:
+            data = res.json()['message']
+            title = data.get('title', ['Bilinmeyen Başlık'])[0]
+            author = data.get('author', [{'family': 'Anonim'}])[0].get('family')
+            year = data.get('created', {}).get('date-parts', [[datetime.now().year]])[0][0]
+            return title, author, year
+    except: return None
 
-def format_cite(ref, style, idx):
-    title = ref['title']
-    url = ref['url']
-    date = ref['year']
-    access = ref['access']
-    
-    if style == "Vancouver":
-        return f"({idx}) {title}. Available at: {url} (Accessed: {access})"
-    elif style == "APA 7th":
-        return f"{title}. ({date}). Retrieved from {url}"
-    elif style == "MLA 9th":
-        return f'"{title}." {date}, {url}. Accessed {access}.'
-    elif style == "Harvard":
-        return f"{title} ({date}). Available at: {url} [Accessed {access}]."
-    elif style == "IEEE":
-        return f"[{idx}] {title}, {date}. [Online]. Available: {url}"
-    elif style == "Chicago":
-        return f"{title}. {date}. {url} (accessed {access})."
-    return title
+def get_pdf_info(file_bytes):
+    """PDF içindeki metadata'yı AI/Programatik olarak tarar."""
+    try:
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+        meta = doc.metadata
+        title = meta.get("title") or "Bilinmeyen PDF Başlığı"
+        author = meta.get("author") or "Anonim Yazar"
+        # Eğer metadata boşsa ilk sayfadan DOI taraması yapar
+        first_page = doc[0].get_text()
+        doi_match = re.search(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', first_page, re.I)
+        if doi_match:
+            api_data = fetch_metadata_from_doi(doi_match.group())
+            if api_data: return api_data
+        return title, author, datetime.now().year
+    except: return "Hatalı PDF", "Bilinmeyen", 2026
 
-# 5. ARAYÜZ
-st.title("🎓 Citemate Pro v6")
-st.subheader("Gelişmiş Akademik Atıf Yönetimi")
+def fetch_web_title(url):
+    """Web linkinden DOI veya Title ayıklar."""
+    doi_match = re.search(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', url, re.I)
+    if doi_match:
+        api_data = fetch_metadata_from_doi(doi_match.group())
+        if api_data: return api_data
+    return url, "Web Kaynağı", datetime.now().year
 
-# FORMAT SEÇİCİ (Tüm meşhur formatlar)
-all_styles = ["Vancouver", "APA 7th", "MLA 9th", "Harvard", "IEEE", "Chicago"]
-selected_style = st.selectbox("Atıf Formatını Seçin:", all_styles)
+# 4. ARAYÜZ
+st.title("🧬 Citemate AI Engine v8")
+st.subheader("Otomatik Akademik Teşhis ve Formatlama")
 
-st.divider()
+style = st.selectbox("Format:", ["Vancouver", "APA 7th", "IEEE", "Harvard"])
 
 col_in, col_out = st.columns([1, 1], gap="large")
 
 with col_in:
-    st.header("📥 Kaynak Ekle")
-    
-    tab_link, tab_file = st.tabs(["🔗 Link ile Ekle", "📂 Cihazdan PDF Ekle"])
+    st.header("📥 Kaynak Yükle")
+    tab_link, tab_pdf = st.tabs(["🔗 Akıllı Link", "📄 Akıllı PDF Okuyucu"])
     
     with tab_link:
-        link_input = st.text_input("URL / DOI Adresi:", placeholder="https://...")
-        if st.button("Kaynağı Listeye Ekle", type="primary"):
-            if link_input and not any(r['url'] == link_input for r in st.session_state.refs):
-                with st.spinner('Bilgiler çekiliyor...'):
-                    t = get_metadata(link_input)
-                    st.session_state.refs.append({
-                        "url": link_input, "title": t, "year": datetime.now().year, 
-                        "access": datetime.now().strftime("%d.%m.%Y"), "type": "Web"
-                    })
-                st.success("Eklendi!")
-            elif any(r['url'] == link_input for r in st.session_state.refs):
-                st.warning("Bu kaynak zaten ekli!")
+        url_in = st.text_input("URL veya DOI:")
+        if st.button("Kaynağı AI ile Tara"):
+            if url_in:
+                t, a, y = fetch_web_title(url_in)
+                st.session_state.refs.append({"title": t, "author": a, "year": y, "url": url_in})
+                st.success(f"Teşhis Edildi: {t}")
 
-    with tab_file:
-        uploaded_file = st.file_uploader("PDF Dosyası Seçin", type="pdf")
-        if uploaded_file is not None:
-            if not any(r['url'] == uploaded_file.name for r in st.session_state.refs):
-                st.session_state.refs.append({
-                    "url": uploaded_file.name, "title": uploaded_file.name.replace(".pdf", ""), 
-                    "year": datetime.now().year, "access": datetime.now().strftime("%d.%m.%Y"), "type": "Dosya"
-                })
-                st.success(f"{uploaded_file.name} listeye eklendi.")
+    with tab_pdf:
+        pdf_file = st.file_uploader("PDF Dosyasını Sürükleyin", type="pdf")
+        if pdf_file:
+            if st.button("PDF İçeriğini Çözümle"):
+                t, a, y = get_pdf_info(pdf_file.read())
+                st.session_state.refs.append({"title": t, "author": a, "year": y, "url": pdf_file.name})
+                st.success(f"PDF Analiz Edildi: {t}")
 
 with col_out:
-    st.header("📋 Kaynakça Çıktısı")
+    st.header("📋 Profesyonel Çıktı")
+    full_bib = ""
+    for i, r in enumerate(st.session_state.refs, 1):
+        if style == "Vancouver":
+            cite = f"{i}. {r['author']}. {r['title']}. ({r['year']}). {r['url']}"
+        else:
+            cite = f"{r['author']} ({r['year']}). {r['title']}. Retrieved from {r['url']}"
+        
+        st.code(cite, language="text")
+        full_bib += cite + "\n\n"
     
     if st.session_state.refs:
-        full_bibliography = ""
-        for i, r in enumerate(st.session_state.refs, 1):
-            formatted = format_cite(r, selected_style, i)
-            full_bibliography += formatted + "\n\n"
-            
-            with st.container():
-                st.markdown(f"**[{i}] {r['title']}**")
-                st.code(formatted, language="text")
-        
-        st.divider()
-        st.subheader("📤 Toplu Kopyala")
-        st.text_area("Tüm kaynakçayı buradan kopyalayabilirsiniz:", value=full_bibliography, height=200)
-        
-        if st.button("🗑️ Listeyi Sıfırla"):
+        st.download_button("⬇️ Tüm Kaynakçayı İndir", data=full_bib, file_name="kaynakca.txt")
+        if st.button("🗑️ Temizle"):
             st.session_state.refs = []
             st.rerun()
-    else:
-        st.info("Henüz kaynak eklenmedi.")
-
-# NASIL KULLANILIR
-with st.expander("ℹ️ Yardım ve Kullanım"):
-    st.write("""
-    - **Link:** Web siteleri veya online makaleler için URL girip ekleyin.
-    - **Cihazdan Ekle:** Bilgisayarınızdaki PDF'leri sürükleyip bırakın.
-    - **Mükerrer:** Aynı linki/dosyayı sistem iki kez eklemez.
-    - **Toplu Kopyalama:** Sağ taraftaki metin alanından tüm listeyi tek seferde alabilirsiniz.
-    """)
