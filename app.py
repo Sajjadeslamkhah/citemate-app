@@ -9,13 +9,13 @@ import urllib.parse
 # ==========================================
 # 1. SAYFA YAPILANDIRMASI & ANALYTICS
 # ==========================================
-st.set_page_config(page_title="Citemate Ultimate v11.0", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="Citemate Pro", page_icon="🎓", layout="wide")
 
 def add_analytics():
-    # 'G-XXXXXXXXXX' kısmına Google Analytics Ölçüm Kimliğini yaz
-    ga_id = "G-XXXXXXXXXX" 
+    # Google Analytics Ölçüm Kimliğin
+    ga_id = "G-90YJBXFY8W" 
     
-    # Yeni nesil istatistik gömme yöntemi (iframe uyumlu)
+    # Google Analytics Entegrasyonu
     ga_code = f"""
         <iframe src="https://www.googletagmanager.com/ns.html?id={ga_id}"
                 height="0" width="0" style="display:none;visibility:hidden"></iframe>
@@ -27,7 +27,6 @@ def add_analytics():
             gtag('config', '{ga_id}');
         </script>
     """
-    # Streamlit'in yeni standartlarına uygun iframe kullanımı
     st.components.v1.html(ga_code, height=0)
 
 # İstatistikleri başlat
@@ -50,7 +49,7 @@ languages = {
         "share_results": "📋 Kaynakçayı Paylaş", "download_btn": "📥 Kaynakçayı İndir (.txt)",
         "wa_share": "WhatsApp", "mail_share": "E-posta",
         "confirm_btn": "✅ Evet, Doğru", "cancel_btn": "❌ Hayır, Yanlış",
-        "footer_msg": "Citemate.org - Dünya standartlarında akademik araç."
+        "footer_msg": "Citemate.org - Profesyonel akademik atıf aracı."
     },
     "English": {
         "welcome": "Welcome!",
@@ -61,7 +60,7 @@ languages = {
         "share_results": "📋 Share Bibliography", "download_btn": "📥 Download Bibliography (.txt)",
         "wa_share": "WhatsApp", "mail_share": "Email",
         "confirm_btn": "✅ Yes, Correct", "cancel_btn": "❌ No, Wrong",
-        "footer_msg": "Citemate.org - World-class academic tool."
+        "footer_msg": "Citemate.org - Professional academic tool."
     }
 }
 
@@ -82,25 +81,24 @@ st.markdown("""
 
 col_header, col_lang = st.columns([7, 3])
 with col_header:
-    st.title("🎓 Citemate Pro v11.0")
+    st.title("🎓 Citemate Pro")
 
 with col_lang:
     st.write("") 
     c1, c2 = st.columns(2)
-    if c1.button("🇹🇷 Türkçe", key="tr_v11"): st.session_state.lang = "Türkçe"; st.rerun()
-    if c2.button("🇺🇸 English", key="en_v11"): st.session_state.lang = "English"; st.rerun()
+    if c1.button("🇹🇷 Türkçe", key="tr_btn"): st.session_state.lang = "Türkçe"; st.rerun()
+    if c2.button("🇺🇸 English", key="en_btn"): st.session_state.lang = "English"; st.rerun()
 
 L = languages[st.session_state.lang]
 
-# ( fetch_academic_data ve process_pdf fonksiyonları v10.9 ile aynıdır, hata içermez )
-# ... [Burada önceki sürümdeki veri çekme motoru yer alıyor] ...
-
-# Aradaki fonksiyonları eklemeyi unutma (fetch_academic_data ve process_pdf)
+# ==========================================
+# 4. VERİ ÇEKME MOTORU
+# ==========================================
 def fetch_academic_data(query, is_doi=False):
     doi_pattern = r'10\.\d{4,9}/[-._;()/:A-Z0-9]+'
     doi_match = re.search(doi_pattern, query, re.I)
     doi = doi_match.group().strip("/") if doi_match else query
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+    headers = {'User-Agent': 'Mozilla/5.0'}
     try:
         url = f"https://api.crossref.org/works/{doi}" if is_doi else f"https://api.crossref.org/works?query={query}&rows=1"
         res = requests.get(url, timeout=12, headers=headers)
@@ -112,12 +110,12 @@ def fetch_academic_data(query, is_doi=False):
                 authors = item.get('author', [])
                 auth_str = authors[0].get('family') or authors[0].get('literal') or "Anonim"
                 if len(authors) > 1: auth_str += " et al."
-                year = "2026"
+                year = datetime.now().year
                 for field in ['published-print', 'published-online', 'issued', 'created']:
                     if field in item and item[field].get('date-parts'):
                         py = item[field]['date-parts'][0][0]
                         if py: year = str(py); break
-                return {"title": str(title), "author": str(auth_str), "year": year, "url": f"https://doi.org/{doi}"}
+                return {"title": str(title), "author": str(auth_str), "year": str(year), "url": f"https://doi.org/{doi}"}
     except: pass
     return None
 
@@ -129,14 +127,14 @@ def process_pdf(file_bytes, filename):
         doi_match = re.search(doi_pattern, text, re.I)
         if doi_match: return fetch_academic_data(doi_match.group().strip("/"), is_doi=True)
         lines = [l.strip() for l in text.split('\n') if len(l.strip()) > 15]
-        return {"title": lines[0] if lines else filename, "author": "PDF", "year": "2026", "url": filename}
+        return {"title": lines[0] if lines else filename, "author": "PDF", "year": str(datetime.now().year), "url": filename}
     except: return None
 
 # ==========================================
-# 5. GİRİŞ VE ÇIKTI ALANI
+# 5. ARAYÜZ VE ÇIKTILAR
 # ==========================================
 with st.expander(L["tutorial_title"]): st.info(L["tutorial_text"])
-style = st.selectbox(L["cite_style"], ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"], key="style_v11")
+style = st.selectbox(L["cite_style"], ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"], key="style_select")
 st.divider()
 
 col_in, col_out = st.columns([4, 6], gap="large")
@@ -146,19 +144,19 @@ with col_in:
     t_doi, t_search, t_pdf = st.tabs([L["tab_doi"], L["tab_search"], L["tab_pdf"]])
     
     with t_doi:
-        doi_in = st.text_input("DOI / URL:", key="doi_v11")
-        if st.button(L["add_btn"], key="btn_doi_v11"):
+        doi_in = st.text_input("DOI / URL:", key="doi_input")
+        if st.button(L["add_btn"], key="add_doi_btn"):
             if doi_in.strip():
-                with st.spinner("Analyzing..."):
+                with st.spinner("Analiz ediliyor..."):
                     res = fetch_academic_data(doi_in, is_doi=True)
                     if res: st.session_state.refs.append(res); st.rerun()
                     else:
-                        st.session_state.refs.append({"title": doi_in, "author": "Web", "year": "2026", "url": doi_in})
-                        st.warning("Added as link."); st.rerun()
+                        st.session_state.refs.append({"title": doi_in, "author": "Web", "year": str(datetime.now().year), "url": doi_in})
+                        st.warning("Link olarak eklendi."); st.rerun()
 
     with t_search:
-        title_q = st.text_input(L["tab_search"] + ":", key="q_v11")
-        if st.button("🔍 Search", key="btn_q_v11"):
+        title_q = st.text_input(L["tab_search"] + ":", key="search_input")
+        if st.button("🔍 Ara", key="search_btn"):
             res = fetch_academic_data(title_q, is_doi=False)
             if res: st.session_state.temp_search = res
         if st.session_state.temp_search:
@@ -167,23 +165,23 @@ with col_in:
             st.write(f"{st.session_state.temp_search['author']} ({st.session_state.temp_search['year']})")
             st.markdown('</div>', unsafe_allow_html=True)
             cy, cn = st.columns(2)
-            if cy.button(L["confirm_btn"], key="y_v11"):
+            if cy.button(L["confirm_btn"], key="confirm_btn"):
                 st.session_state.refs.append(st.session_state.temp_search)
                 st.session_state.temp_search = None; st.rerun()
-            if cn.button(L["cancel_btn"], key="n_v11"):
+            if cn.button(L["cancel_btn"], key="cancel_btn"):
                 st.session_state.temp_search = None; st.rerun()
 
     with t_pdf:
-        pf = st.file_uploader(L["tab_pdf"], type="pdf", key="pdf_v11")
-        if pf and st.button("📄 Analyze PDF", key="btn_pdf_v11"):
+        pf = st.file_uploader(L["tab_pdf"], type="pdf", key="pdf_uploader")
+        if pf and st.button("📄 PDF Analiz Et", key="pdf_btn"):
             res = process_pdf(pf.read(), pf.name)
             if res: st.session_state.refs.append(res); st.rerun()
 
 with col_out:
-    st.header("📋 Results")
+    st.header("📋 Sonuçlar")
     if st.session_state.refs:
         all_txt = ""
-        tab_l, tab_i = st.tabs(["📋 Bibliography", "🖋️ In-text"])
+        tab_l, tab_i = st.tabs(["📋 Kaynakça", "🖋️ Metin İçi"])
         with tab_l:
             for i, r in enumerate(st.session_state.refs, 1):
                 auth, titl, yr, link = r.get('author'), r.get('title'), r.get('year'), r.get('url')
@@ -199,12 +197,12 @@ with col_out:
 
         st.divider()
         st.download_button(label=L["download_btn"], data=all_txt, file_name="references.txt", use_container_width=True)
-        encoded_res = urllib.parse.quote(f"Citemate Results:\n\n" + all_txt)
+        encoded_res = urllib.parse.quote(f"Citemate Sonuçları:\n\n" + all_txt)
         cw, cm = st.columns(2)
         cw.markdown(f'<a href="https://api.whatsapp.com/send?text={encoded_res}" target="_blank" class="share-wa">{L["wa_share"]}</a>', unsafe_allow_html=True)
-        cm.markdown(f'<a href="mailto:?subject=Bibliography&body={encoded_res}" class="share-mail">{L["mail_share"]}</a>', unsafe_allow_html=True)
-        if st.button("🗑️ Clear All", key="clear_v11", use_container_width=True):
+        cm.markdown(f'<a href="mailto:?subject=Kaynakça&body={encoded_res}" class="share-mail">{L["mail_share"]}</a>', unsafe_allow_html=True)
+        if st.button("🗑️ Tümünü Temizle", key="clear_all_btn", use_container_width=True):
             st.session_state.refs = []; st.rerun()
-    else: st.info("No sources.")
+    else: st.info("Henüz kaynak eklenmedi.")
 
 st.markdown(f"--- \n<center><i>{L['footer_msg']}</i></center>", unsafe_allow_html=True)
