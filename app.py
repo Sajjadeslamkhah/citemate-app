@@ -2,230 +2,584 @@ import streamlit as st
 import requests
 import re
 from datetime import datetime
-import fitz  # PyMuPDF
+from typing import Optional
+import html
+from urllib.parse import quote
+
+try:
+    import fitz
+except ImportError:
+    fitz = None
+
+try:
+    import pytesseract
+    from PIL import Image
+except ImportError:
+    pytesseract = None
+    Image = None
 
 # ==========================================
-# 1. SAYFA YAPILANDIRMASI & SEO
+# LANGUAGE DICTIONARY
 # ==========================================
-st.set_page_config(page_title="Citemate Pro | Elite Citation Intelligence", page_icon="🎓", layout="wide")
 
-def add_seo():
-    ga_id = "G-90YJBXFY8W" 
-    google_verification = '<meta name="google-site-verification" content="PjsiKrJtJ7MoRpZcOG1IK3VZpNh6WMGmMcnk6OIAHfE" />'
-    meta_tags = """
-        <meta name="description" content="Citemate Pro: Akademik makaleleriniz için kusursuz Vancouver, APA ve IEEE atıf düzenleme motoru.">
-        <meta name="keywords" content="atıf düzenleme, kaynakça oluşturucu, vancouver style, apa 7th, akademik referans motoru, lifegenix">
-    """
-    ga_code = f"{google_verification}{meta_tags}<script async src='https://www.googletagmanager.com/gtag/js?id={ga_id}'></script><script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','{ga_id}');</script>"
-    st.components.v1.html(ga_code, height=0)
+LANGUAGES = {
+    "TR": {
+        "app_title": "Citemate Pro",
+        "sidebar_brand": "Citemate Pro",
+        "contact_title": "Bize Ulasin",
+        "contact_desc": "Akademik islbirligi icin bize ulasin.",
+        "menu_label": "MENU",
+        "menu_citation_engine": "Atif Motoru",
+        "menu_services": "Hizmetler",
+        "format_label": "Format:",
+        "tab_doi": "DOI",
+        "tab_search": "Arama",
+        "tab_pdf": "PDF",
+        "doi_label": "DOI:",
+        "doi_placeholder": "10.1016/j.cell...",
+        "doi_button": "Ekle",
+        "search_label": "Baslık:",
+        "search_placeholder": "Yayin basligi...",
+        "search_button": "Ara",
+        "pdf_label": "PDF Yukle",
+        "pdf_button": "Yukle",
+        "download_button": "Indir",
+        "error_empty_input": "Lütfen bilgi girin",
+        "error_invalid_doi": "Gecersiz DOI formatı",
+        "error_no_results": "Sonuc bulunamadi",
+        "error_timeout": "Timeout (10s)",
+        "error_connection": "Baglanti hatasi",
+        "error_pdf": "PDF hatasi",
+        "error_pymupdf": "PyMuPDF gerekli: pip install pymupdf",
+        "success_added": "Eklendi!",
+        "warning_duplicate": "Bu kaynak zaten var!",
+        "searching": "Aranıyor...",
+        "reading": "Okunuyor...",
+        "delete": "Sil",
+        "no_sources": "Kaynak yok",
+    },
+    "EN": {
+        "app_title": "Citemate Pro",
+        "sidebar_brand": "Citemate Pro",
+        "contact_title": "Contact Us",
+        "contact_desc": "Reach out for academic collaboration.",
+        "menu_label": "MENU",
+        "menu_citation_engine": "Citation Engine",
+        "menu_services": "Services",
+        "format_label": "Format:",
+        "tab_doi": "DOI",
+        "tab_search": "Search",
+        "tab_pdf": "PDF",
+        "doi_label": "DOI:",
+        "doi_placeholder": "10.1016/j.cell...",
+        "doi_button": "Add",
+        "search_label": "Title:",
+        "search_placeholder": "Publication title...",
+        "search_button": "Search",
+        "pdf_label": "Upload PDF",
+        "pdf_button": "Upload",
+        "download_button": "Download",
+        "error_empty_input": "Please provide input",
+        "error_invalid_doi": "Invalid DOI format",
+        "error_no_results": "No results found",
+        "error_timeout": "Timeout (10s)",
+        "error_connection": "Connection error",
+        "error_pdf": "PDF error",
+        "error_pymupdf": "PyMuPDF required: pip install pymupdf",
+        "success_added": "Added!",
+        "warning_duplicate": "This source already exists!",
+        "searching": "Searching...",
+        "reading": "Reading...",
+        "delete": "Delete",
+        "no_sources": "No sources",
+    }
+}
 
-add_seo()
+st.set_page_config(page_title="Citemate Pro", page_icon="🎓", layout="wide")
 
 # ==========================================
-# 2. HAFIZA BAŞLATMA
+# SESSION STATE
 # ==========================================
-if 'refs' not in st.session_state: st.session_state.refs = []
-if 'page' not in st.session_state: st.session_state.page = "🏠 Atıf Motoru"
-if 'lang' not in st.session_state: st.session_state.lang = "Türkçe"
+
+def init_session_state():
+    if 'refs' not in st.session_state:
+        st.session_state.refs = []
+    if 'page' not in st.session_state:
+        st.session_state.page = "citation_engine"
+    if 'lang' not in st.session_state:
+        st.session_state.lang = "TR"
+
+init_session_state()
+
+def get_text(key: str) -> str:
+    lang = st.session_state.lang
+    if lang not in LANGUAGES:
+        lang = "TR"
+    return LANGUAGES[lang].get(key, key)
 
 # ==========================================
-# 3. TASARIM VE KURUMSAL KİMLİK
+# STYLING
 # ==========================================
-MY_EMAIL = "mbgsajjad@gmail.com"
 
-st.markdown(f"""
+st.markdown("""
     <style>
-    .stApp {{ background-color: #0e1117; }}
-    .main-title {{ font-size: 62px !important; font-weight: 900 !important; color: #34d399; text-shadow: 0px 0px 25px rgba(52, 211, 153, 0.4); margin-bottom: 0px; letter-spacing: -1px; }}
-    .sub-title {{ color: #f8fafc; font-size: 22px; margin-bottom: 45px; font-weight: 300; letter-spacing: 1px; }}
-    .sidebar-brand {{ font-size: 28px !important; font-weight: bold; color: #34d399; margin-bottom: 10px; }}
-    .contact-container {{ background: #1e293b; padding: 18px; border-radius: 15px; margin-top: 25px; border: 1px solid #334155; }}
-    .contact-btn {{ display: block; background: #34d399; color: black !important; padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; margin-top: 10px; transition: 0.3s ease; }}
-    .contact-btn:hover {{ background: #10b981; transform: translateY(-2px); }}
-    .info-box {{ background-color: rgba(52, 211, 153, 0.05); padding: 20px; border-radius: 12px; border: 1px dashed rgba(52, 211, 153, 0.3); margin-bottom: 35px; }}
-    .service-card {{ background: #161b22; padding: 30px; border-radius: 18px; border-top: 5px solid #34d399; margin-bottom: 25px; }}
-    .feature-tag {{ background: #064e3b; color: #34d399; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-right: 6px; text-transform: uppercase; }}
-    .footer {{ color: #64748b; font-size: 14px; text-align: center; margin-top: 80px; padding: 25px; border-top: 1px solid #1e293b; }}
+    .stApp { background-color: #0e1117; }
+    .main-title { font-size: 48px !important; font-weight: 900 !important; color: #34d399; margin-bottom: 10px; }
+    .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
+    .ref-box { background-color: #161b22; padding: 15px; border-radius: 8px; border-left: 3px solid #34d399; margin: 10px 0; }
+    .ref-title { font-weight: bold; color: #e2e8f0; }
+    .ref-author { color: #94a3b8; font-size: 13px; }
+    .ref-source { color: #64748b; font-size: 12px; font-style: italic; }
+    .error-box { background-color: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; color: #fca5a5; padding: 10px; border-radius: 5px; margin: 10px 0; }
+    .success-box { background-color: rgba(34, 197, 94, 0.1); border-left: 3px solid #22c55e; color: #86efac; padding: 10px; border-radius: 5px; margin: 10px 0; }
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. YAN MENÜ (NAVİGASYON & İLETİŞİM)
+# UTILITY FUNCTIONS
 # ==========================================
-with st.sidebar:
-    st.markdown('<p class="sidebar-brand">🎓 Citemate Pro</p>', unsafe_allow_html=True)
-    st.caption("Elite Academic Solutions | Powered by Lifegenix")
-    st.divider()
-    
-    # Dil Seçimi
-    c1, c2 = st.columns(2)
-    if c1.button("🇹🇷 TR"): 
-        st.session_state.lang = "Türkçe"
-        st.rerun()
-    if c2.button("🇺🇸 EN"): 
-        st.session_state.lang = "English"
-        st.rerun()
-    
-    st.divider()
-    selection = st.radio("SİSTEM MENÜSÜ", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"], label_visibility="collapsed")
-    st.session_state.page = selection
-    
-    # Çok dilli iletişim kutusu
-    c_title = "📩 Bize Ulaşın" if st.session_state.lang == "Türkçe" else "📩 Contact Us"
-    c_desc = "Akademik iş birliği ve kurumsal analiz teklifleri için ulaşın." if st.session_state.lang == "Türkçe" else "Reach out for academic collaboration and analysis."
-    c_btn = "✉️ Mesaj Gönder" if st.session_state.lang == "Türkçe" else "✉️ Send Message"
 
-    st.markdown(f"""
-        <div class="contact-container">
-            <p style="color: #34d399; font-weight: bold; margin-bottom: 5px; font-size: 17px;">{c_title}</p>
-            <p style="color: #94a3b8; font-size: 13px;">{c_desc}</p>
-            <a href="mailto:{MY_EMAIL}" class="contact-btn">{c_btn}</a>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.divider()
-    st.markdown("© 2026 **Lifegenix Danışmanlık**<br>Tüm hakları saklıdır.", unsafe_allow_html=True)
+def is_valid_doi(doi_str: str) -> bool:
+    if not isinstance(doi_str, str):
+        return False
+    return bool(re.match(r'^10\.\d{4,}/[^\s]+$', doi_str.strip()))
 
-# ==========================================
-# 5. MOTOR FONKSİYONLARI
-# ==========================================
-def get_cite(query, is_doi=False):
-    try:
-        url = f"https://api.crossref.org/works/{query}" if is_doi else f"https://api.crossref.org/works?query={query}&rows=1"
-        res = requests.get(url, timeout=10)
-        if res.status_code == 200:
-            d = res.json()['message']
-            item = d['items'][0] if 'items' in d else d
-            auth = item.get('author', [{'family': 'Anonim'}])[0].get('family')
-            if len(item.get('author', [])) > 1: auth += " et al."
-            year = "2026"
-            if 'published-print' in item: year = str(item['published-print']['date-parts'][0][0])
-            return {"title": item.get('title', [''])[0], "author": auth, "year": year, "url": f"https://doi.org/{query}" if is_doi else "https://doi.org/"}
-    except: return None
-
-def process_pdf(file_bytes):
-    if len(file_bytes) > 10 * 1024 * 1024:
-        st.error("Güvenlik nedeniyle 10MB'dan büyük dosyalar kabul edilmemektedir.")
+def extract_doi_from_text(text: str) -> Optional[str]:
+    if not isinstance(text, str):
         return None
+    match = re.search(r'10\.\d{4,}/[^\s\)]+', text, re.I)
+    return match.group().strip("/") if match else None
+
+def sanitize(s: str, max_len: int = 300) -> str:
+    if not isinstance(s, str):
+        return ""
+    return html.escape(s.strip())[:max_len]
+
+def get_author(item: dict) -> str:
     try:
-        doc = fitz.open(stream=file_bytes, filetype="pdf")
-        text = "".join([doc[i].get_text() for i in range(min(len(doc), 3))])
-        doi_match = re.search(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', text, re.I)
-        if doi_match: return get_cite(doi_match.group().strip("/"), is_doi=True)
-    except: pass
+        authors = item.get('author', [])
+        if not authors:
+            return "Anonim"
+        author = authors[0].get('family') or authors[0].get('literal', 'Anonim')
+        if len(authors) > 1:
+            return f"{author} et al."
+        return sanitize(str(author))
+    except:
+        return "Anonim"
+
+def get_year(item: dict) -> str:
+    try:
+        for key in ['published-online', 'published-print', 'created', 'issued']:
+            if key in item and isinstance(item[key], dict):
+                parts = item[key].get('date-parts')
+                if parts and len(parts) > 0 and len(parts[0]) > 0:
+                    year = parts[0][0]
+                    if isinstance(year, int) and 1900 < year < 2100:
+                        return str(year)
+    except:
+        pass
+    return str(datetime.now().year)
+
+def is_duplicate(new_ref: dict) -> bool:
+    for existing in st.session_state.refs:
+        if new_ref.get('url', '').lower() == existing.get('url', '').lower():
+            return True
+        if (new_ref.get('title', '').lower()[:50] == existing.get('title', '').lower()[:50]):
+            return True
+    return False
+
+def format_citation(ref: dict, style: str, index: int) -> str:
+    author = sanitize(str(ref.get('author', 'Anonim')))
+    title = sanitize(str(ref.get('title', 'No Title')))
+    year = ref.get('year', '2026')
+    url = sanitize(str(ref.get('url', '')))
+    
+    if style == "Vancouver":
+        return f"{index}. {author}. {title}. {year}. {url}"
+    elif style == "APA 7th":
+        return f"{author} ({year}). {title}. {url}"
+    elif style == "IEEE":
+        return f"[{index}] {author}, \"{title},\" {year}. {url}"
+    elif style == "MLA":
+        return f"{author}. {title}. {year}. {url}"
+    return f"{author} ({year}). {title}."
+
+# ==========================================
+# API FUNCTIONS
+# ==========================================
+
+def get_cite(query: str, is_doi: bool = False) -> Optional[dict]:
+    if not isinstance(query, str) or not query.strip():
+        st.markdown(f'<div class="error-box">{get_text("error_empty_input")}</div>', unsafe_allow_html=True)
+        return None
+    
+    query = sanitize(query, max_len=200)
+    
+    try:
+        if is_doi:
+            url = f"https://api.crossref.org/works/{quote(query, safe='')}"
+        else:
+            url = f"https://api.crossref.org/works?query={quote(query, safe='')}&rows=1"
+        
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        
+        if 'message' not in data:
+            return None
+        
+        msg = data['message']
+        item = msg if is_doi else (msg['items'][0] if msg.get('items') else None)
+        
+        if not item:
+            st.markdown(f'<div class="error-box">{get_text("error_no_results")}</div>', unsafe_allow_html=True)
+            return None
+        
+        title = item.get('title', ['No Title'])
+        if isinstance(title, list):
+            title = title[0] if title else 'No Title'
+        
+        return {
+            "title": sanitize(str(title), 200),
+            "author": get_author(item),
+            "year": get_year(item),
+            "url": f"https://doi.org/{item['DOI']}" if 'DOI' in item else item.get('URL', ''),
+            "source": "Crossref"
+        }
+    
+    except requests.exceptions.Timeout:
+        st.markdown(f'<div class="error-box">{get_text("error_timeout")}</div>', unsafe_allow_html=True)
+    except requests.exceptions.ConnectionError:
+        st.markdown(f'<div class="error-box">{get_text("error_connection")}</div>', unsafe_allow_html=True)
+    except Exception:
+        st.markdown(f'<div class="error-box">{get_text("error_connection")}</div>', unsafe_allow_html=True)
+    
     return None
 
-# ==========================================
-# 6. SAYFA İÇERİKLERİ
-# ==========================================
-
-if st.session_state.page == "🏠 Atıf Motoru":
-    st.markdown('<p class="main-title">🎓 Citemate Pro</p>', unsafe_allow_html=True)
+def process_pdf(file_bytes: bytes, filename: str) -> Optional[dict]:
+    if fitz is None:
+        st.markdown(f'<div class="error-box">{get_text("error_pymupdf")}</div>', unsafe_allow_html=True)
+        return None
     
-    sub_title_text = "Akademik Mükemmeliyet İçin Kusursuz Atıf Yönetimi" if st.session_state.lang == "Türkçe" else "Seamless Citation Management for Academic Excellence"
-    st.markdown(f'<p class="sub-title">{sub_title_text}</p>', unsafe_allow_html=True)
+    try:
+        try:
+            doc = fitz.open(stream=file_bytes, filetype="pdf")
+            text = ""
+            
+            for page_num in range(min(len(doc), 5)):
+                try:
+                    page = doc[page_num]
+                    page_text = page.get_text()
+                    text += page_text + "\n"
+                    
+                    if len(text) > 500:
+                        break
+                except:
+                    continue
+            
+            if len(text.strip()) < 100:
+                try:
+                    doc = fitz.open(stream=file_bytes, filetype="pdf")
+                    for page_num in range(min(len(doc), 3)):
+                        try:
+                            pix = doc[page_num].get_pixmap(matrix=fitz.Matrix(2, 2))
+                            if Image and pytesseract:
+                                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                                page_text = pytesseract.image_to_string(img)
+                                text += page_text + "\n"
+                                
+                                if len(text) > 500:
+                                    break
+                        except:
+                            continue
+                except:
+                    pass
+        except Exception as e:
+            pass
+        
+        if len(text.strip()) < 50:
+            return {
+                "title": sanitize(filename.replace('.pdf', ''), 200),
+                "author": "PDF",
+                "year": str(datetime.now().year),
+                "url": sanitize(filename),
+                "source": "PDF (Fallback)"
+            }
+        
+        doi = extract_doi_from_text(text)
+        if doi and is_valid_doi(doi):
+            result = get_cite(doi, is_doi=True)
+            if result:
+                return result
+        
+        lines = [l.strip() for l in text.split('\n') if len(l.strip()) > 10]
+        lines = [l for l in lines if len(l) > 20 and len(l) < 200]
+        
+        if not lines:
+            return {
+                "title": sanitize(filename.replace('.pdf', ''), 200),
+                "author": "PDF",
+                "year": str(datetime.now().year),
+                "url": sanitize(filename),
+                "source": "PDF"
+            }
+        
+        title = max(lines[:5], key=len, default=filename)
+        
+        return {
+            "title": sanitize(title, 200),
+            "author": "PDF",
+            "year": str(datetime.now().year),
+            "url": sanitize(filename),
+            "source": "PDF"
+        }
+    
+    except Exception as e:
+        return {
+            "title": sanitize(filename.replace('.pdf', ''), 200),
+            "author": "PDF",
+            "year": str(datetime.now().year),
+            "url": sanitize(filename),
+            "source": "PDF (Fallback)"
+        }
 
-    # ŞEFFAF BİLGİLENDİRME MESAJI
-    st.markdown("""
-        <div class="info-box">
-            <p style="color: #e2e8f0; font-size: 16px; line-height: 1.6; margin-bottom: 0;">
-                <b>Citemate Pro</b>, araştırmacıların ve öğrencilerin kaynakça hazırlama yükünü hafifletmek için tasarlanmış, 
-                yapay zeka destekli bir <b>atıf düzenleme motorudur.</b> DOI numarası, yayın başlığı veya doğrudan PDF dosyanızı 
-                kullanarak saniyeler içinde hatasız; Vancouver, APA, IEEE ve MLA formatlarında profesyonel referanslar oluşturur. 
-                Karmaşık akademik standartları otomatiğe bağlayarak, enerjinizi sadece araştırmanıza odaklamanızı sağlar.
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
+# ==========================================
+# SIDEBAR
+# ==========================================
 
-    style = st.selectbox("Tercih Edilen Standard / Preferred Style:", ["Vancouver", "APA 7th", "IEEE", "MLA"])
-    t1, t2, t3 = st.tabs(["🔗 DOI Entegrasyonu", "🔍 Global Arama", "📄 Akıllı PDF Analizi"])
+with st.sidebar:
+    st.title("Citemate Pro")
+    
+    lang_cols = st.columns(2)
+    if lang_cols[0].button("TR", use_container_width=True):
+        st.session_state.lang = "TR"
+        st.rerun()
+    if lang_cols[1].button("EN", use_container_width=True):
+        st.session_state.lang = "EN"
+        st.rerun()
+
+# ==========================================
+# MAIN PAGES
+# ==========================================
+
+st.markdown('<p class="main-title">Citemate Pro</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Akademik Atif Yonetimi | Academic Citation Management</p>', unsafe_allow_html=True)
+
+page_tabs = st.tabs(["Citation Engine", "Professional Services / Profesyonel Hizmetler"])
+
+with page_tabs[0]:
+    style = st.selectbox(get_text("format_label"), ["Vancouver", "APA 7th", "IEEE", "MLA"], index=0)
+    
+    t1, t2, t3 = st.tabs([get_text("tab_doi"), get_text("tab_search"), get_text("tab_pdf")])
+    
+    # ==========================================
+    # TAB 1: DOI
+    # ==========================================
     
     with t1:
-        doi_in = st.text_input("DOI Numarası:", placeholder="10.1016/j.cell...")
-        if st.button("Kaynağı İşle", key="btn_doi"):
-            res = get_cite(doi_in, True)
-            if res: 
-                st.session_state.refs.append(res)
-                st.rerun()
-
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            doi_in = st.text_input(get_text("doi_label"), placeholder=get_text("doi_placeholder"), key="doi_input")
+        with col2:
+            if st.button(get_text("doi_button"), use_container_width=True):
+                if not doi_in.strip():
+                    st.markdown(f'<div class="error-box">{get_text("error_empty_input")}</div>', unsafe_allow_html=True)
+                elif not is_valid_doi(doi_in):
+                    st.markdown(f'<div class="error-box">{get_text("error_invalid_doi")}</div>', unsafe_allow_html=True)
+                else:
+                    with st.spinner(get_text("searching")):
+                        res = get_cite(doi_in, is_doi=True)
+                        if res:
+                            if is_duplicate(res):
+                                st.markdown(f'<div class="error-box">{get_text("warning_duplicate")}</div>', unsafe_allow_html=True)
+                            else:
+                                st.session_state.refs.append(res)
+                                st.markdown(f'<div class="success-box">{get_text("success_added")}</div>', unsafe_allow_html=True)
+                                st.rerun()
+    
+    # ==========================================
+    # TAB 2: SEARCH
+    # ==========================================
+    
     with t2:
-        q_in = st.text_input("Yayın Başlığı:", placeholder="Tam başlık giriniz...")
-        if st.button("Veritabanında Ara", key="btn_q"):
-            res = get_cite(q_in, False)
-            if res: 
-                st.session_state.refs.append(res)
-                st.rerun()
-
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            q_in = st.text_input(get_text("search_label"), placeholder=get_text("search_placeholder"), key="query_input")
+        with col2:
+            if st.button(get_text("search_button"), use_container_width=True):
+                if not q_in.strip():
+                    st.markdown(f'<div class="error-box">{get_text("error_empty_input")}</div>', unsafe_allow_html=True)
+                else:
+                    with st.spinner(get_text("searching")):
+                        res = get_cite(q_in, is_doi=False)
+                        if res:
+                            if is_duplicate(res):
+                                st.markdown(f'<div class="error-box">{get_text("warning_duplicate")}</div>', unsafe_allow_html=True)
+                            else:
+                                st.session_state.refs.append(res)
+                                st.markdown(f'<div class="success-box">{get_text("success_added")}</div>', unsafe_allow_html=True)
+                                st.rerun()
+    
+    # ==========================================
+    # TAB 3: PDF
+    # ==========================================
+    
     with t3:
-        f = st.file_uploader("PDF Yükle", type="pdf")
-        if f and st.button("Metadataları Çözümle"):
-            res = process_pdf(f.read())
-            if res: 
-                st.session_state.refs.append(res)
-                st.rerun()
-            else: st.warning("Dosyada DOI tanımlayıcı bulunamadı.")
+        pdf_file = st.file_uploader(get_text("pdf_label"), type="pdf")
+        
+        if pdf_file:
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.write(f"📄 {pdf_file.name}")
+            with col2:
+                if st.button(get_text("pdf_button"), use_container_width=True):
+                    with st.spinner(get_text("reading")):
+                        res = process_pdf(pdf_file.read(), pdf_file.name)
+                        if res:
+                            if is_duplicate(res):
+                                st.markdown(f'<div class="error-box">{get_text("warning_duplicate")}</div>', unsafe_allow_html=True)
+                            else:
+                                st.session_state.refs.append(res)
+                                st.markdown(f'<div class="success-box">{get_text("success_added")}</div>', unsafe_allow_html=True)
+                                st.rerun()
     
-    if len(st.session_state.refs) > 0:
-        st.divider()
-        txt_out = ""
-        for i, r in enumerate(st.session_state.refs, 1):
-            cite = f"{i}. {r['author']}. {r['title']}. {r['year']}." if style == "Vancouver" else f"{r['author']} ({r['year']}). {r['title']}."
-            st.code(cite)
-            txt_out += cite + "\n"
-        st.download_button("📥 Kaynakçayı Dışa Aktar (.txt)", txt_out, use_container_width=True)
-        if st.button("🗑️ Tüm Kayıtları Temizle"):
-            st.session_state.refs = []
-            st.rerun()
-
-    # SIKÇA SORULAN SORULAR & NEDEN CITEMATE
+    # ==========================================
+    # OUTPUT SECTION
+    # ==========================================
+    
     st.divider()
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.markdown(f"### ❓ {'Sıkça Sorulan Sorular' if st.session_state.lang == 'Türkçe' else 'FAQ'}")
-        with st.expander("DOI Nedir?"):
-            st.write("Dijital Nesne Tanımlayıcı (DOI), makalelerin internetteki kalıcı kimliğidir.")
-        with st.expander("Hangi formatlar destekleniyor?"):
-            st.write("Vancouver, APA 7, IEEE ve MLA standartlarını tam uyumlu destekliyoruz.")
-            
-    with col_b:
-        st.markdown(f"### 🚀 {'Neden Citemate Pro?' if st.session_state.lang == 'Türkçe' else 'Why Citemate Pro?'}")
-        st.write("* **Hız:** DOI ile saniyeler içinde hatasız atıf oluşturma.")
-        st.write("* **Doğruluk:** Global Crossref veritabanı ile tam senkronizasyon.")
-        st.write("* **Ücretsiz:** Tüm araştırmacılar için erişilebilir profesyonel araçlar.")
-
-elif st.session_state.page == "💎 Profesyonel Hizmetler":
-    st.markdown('<p class="main-title">Profesyonel Hizmetler</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">Lifegenix Danışmanlık: Veriden Yayına Stratejik Çözümler</p>', unsafe_allow_html=True)
     
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown(f"""
-        <div class="service-card">
-            <h3>🧬 Genetik Veri Analizi</h3>
-            <p>NCBI, GEO ve TCGA büyük veri setlerinin Python tabanlı işlenmesi ve fenotip-genotip ilişkilendirmesi.</p>
-            <span class="feature-tag">TCGA</span><span class="feature-tag">GEO</span><span class="feature-tag">NCBI</span>
-        </div>
-        <div class="service-card">
-            <h3>🤖 Sağlıkta Makine Öğrenimi</h3>
-            <p>Klinik ve omik veriler kullanılarak geliştirilen hastalık tahmin, sınıflandırma ve yapay zeka modelleri.</p>
-            <span class="feature-tag">Python</span><span class="feature-tag">ML / AI</span>
-        </div>
-        """, unsafe_allow_html=True)
-    with c2:
-        st.markdown(f"""
-        <div class="service-card">
-            <h3>📊 Büyük Veri Analitiği</h3>
-            <p>Büyük ölçekli akademik verilerin Python tabanlı ileri istatistiksel raporlanması ve görselleştirilmesi.</p>
-            <span class="feature-tag">Big Data</span><span class="feature-tag">Python</span>
-        </div>
-        <div class="service-card">
-            <h3>🖋️ Referans Yazımı & Editoryal</h3>
-            <p>Karmaşık yayınların referans yönetiminin Lifegenix uzmanlığıyla yüksek standartta düzenlenmesi.</p>
-            <span class="feature-tag">Editorial Review</span>
-        </div>
-        """, unsafe_allow_html=True)
+    if len(st.session_state.refs) == 0:
+        st.info(f"📌 {get_text('no_sources')}")
+    else:
+        # Bibliography
+        bib_output = ""
+        for i, ref in enumerate(st.session_state.refs, 1):
+            bib_output += format_citation(ref, style, i) + "\n"
+        
+        col1, col2 = st.columns([4, 1])
+        with col1:
+            st.text_area("Cikti / Output", value=bib_output, height=min(150, len(st.session_state.refs) * 40), disabled=True)
+        with col2:
+            st.download_button(
+                label=get_text("download_button"),
+                data=bib_output,
+                file_name=f"kaynakca_{style.lower()}_{datetime.now().strftime('%Y%m%d')}.txt",
+                mime="text/plain"
+            )
+        
+        # Sources with delete buttons
+        st.subheader(f"Kaynaklar / Sources ({len(st.session_state.refs)})")
+        
+        for idx, ref in enumerate(st.session_state.refs):
+            col1, col2 = st.columns([5, 1])
+            
+            with col1:
+                st.markdown(f'<div class="ref-box">', unsafe_allow_html=True)
+                st.markdown(f'<div class="ref-title">#{idx+1} - {ref["author"]} ({ref["year"]})</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="ref-title">{ref["title"][:80]}...</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="ref-source">{ref["source"]}</div>', unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+            
+            with col2:
+                if st.button(get_text("delete"), key=f"del_{idx}", use_container_width=True):
+                    st.session_state.refs.pop(idx)
+                    st.rerun()
 
-# ==========================================
-# 7. FOOTER
-# ==========================================
-st.markdown('<div class="footer">© 2026 Lifegenix Danışmanlık tarafından kurulmuştur. <br> Akademik dürüstlük ve teknolojik üstünlük ilkesiyle.</div>', unsafe_allow_html=True)
+with page_tabs[1]:
+    st.markdown('<h2 style="color: #34d399;">Profesyonel Hizmetler | Professional Services</h2>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        <div class="ref-box" style="border-left: 4px solid #34d399;">
+        <h3 style="color: #34d399;">🧬 Genetik Veri Analizi</h3>
+        <p>NCBI, GEO ve TCGA büyük veri setlerinin Python tabanlı işlenmesi ve fenotip-genotip ilişkilendirmesi. 
+        Genomik veriler üzerinde ileri analiz ve görselleştirme.</p>
+        <p><strong>Uzmanlar:</strong> Bioinformatik, Genetik Mühendisliği</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="ref-box" style="border-left: 4px solid #34d399;">
+        <h3 style="color: #34d399;">🤖 Sağlıkta Makine Öğrenmesi</h3>
+        <p>Klinik ve omik veriler kullanılarak geliştirilen hastalık tahmin, sınıflandırma ve yapay zeka modelleri. 
+        Tanı destek sistemleri ve prognoz tahmini.</p>
+        <p><strong>Uzmanlar:</strong> Tıbbi AI, İstatistiksel Analiz</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="ref-box" style="border-left: 4px solid #34d399;">
+        <h3 style="color: #34d399;">📊 Büyük Veri Analitiği</h3>
+        <p>Büyük ölçekli akademik verilerin Python tabanlı ileri istatistiksel raporlanması ve görselleştirilmesi. 
+        Kompleks veri setlerinin analiz ve sunumu.</p>
+        <p><strong>Uzmanlar:</strong> Veri Bilimi, İstatistik</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="ref-box" style="border-left: 4px solid #34d399;">
+        <h3 style="color: #34d399;">🖋️ Referans Yazımı & Editoryal</h3>
+        <p>Karmaşık yayınların referans yönetiminin Lifegenix uzmanlığıyla yüksek standartta düzenlenmesi. 
+        Akademik yazıların kalite kontrolü ve optimizasyonu.</p>
+        <p><strong>Uzmanlar:</strong> Akademik Yazı, Yayın Yönetimi</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.divider()
+    
+    col1_en, col2_en = st.columns(2)
+    
+    with col1_en:
+        st.markdown("""
+        <div class="ref-box" style="border-left: 4px solid #34d399;">
+        <h3 style="color: #34d399;">🧬 Genetic Data Analysis</h3>
+        <p>Python-based processing of NCBI, GEO, and TCGA large datasets and phenotype-genotype correlation. 
+        Advanced analysis and visualization of genomic data.</p>
+        <p><strong>Experts:</strong> Bioinformatics, Genetic Engineering</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="ref-box" style="border-left: 4px solid #34d399;">
+        <h3 style="color: #34d399;">🤖 Machine Learning in Healthcare</h3>
+        <p>Disease prediction, classification, and AI models developed using clinical and omic data. 
+        Diagnostic support systems and prognosis prediction.</p>
+        <p><strong>Experts:</strong> Medical AI, Statistical Analysis</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2_en:
+        st.markdown("""
+        <div class="ref-box" style="border-left: 4px solid #34d399;">
+        <h3 style="color: #34d399;">📊 Big Data Analytics</h3>
+        <p>Python-based advanced statistical reporting and visualization of large-scale academic data. 
+        Analysis and presentation of complex datasets.</p>
+        <p><strong>Experts:</strong> Data Science, Statistics</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="ref-box" style="border-left: 4px solid #34d399;">
+        <h3 style="color: #34d399;">🖋️ Reference Writing & Editorial</h3>
+        <p>Reference management of complex publications organized to high standards with Lifegenix expertise. 
+        Quality control and optimization of academic writings.</p>
+        <p><strong>Experts:</strong> Academic Writing, Publication Management</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.divider()
+    
+    st.markdown("""
+    <div class="ref-box" style="border-left: 4px solid #34d399; text-align: center;">
+    <h3 style="color: #34d399;">Bize Ulaşın | Contact Us</h3>
+    <p style="font-size: 16px; margin: 15px 0;">
+    <a href="mailto:mbgsajjad@gmail.com" style="color: #34d399; text-decoration: none; font-weight: bold;">📧 mbgsajjad@gmail.com</a>
+    </p>
+    <p style="color: #94a3b8;">Akademik işbirliği ve hizmet teklifleri için iletişime geçin.</p>
+    <p style="color: #94a3b8;">Reach out for academic collaboration and service offers.</p>
+    </div>
+    """, unsafe_allow_html=True)
