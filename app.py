@@ -3,32 +3,27 @@ import requests
 import fitz  # PyMuPDF
 import re
 from datetime import datetime
-from bs4 import BeautifulSoup
 
-# 1. SAYFA YAPILANDIRMASI
-st.set_page_config(page_title="Citemate Ultimate v8.6", page_icon="🎓", layout="wide")
+# 1. SAYFA AYARLARI
+st.set_page_config(page_title="Citemate Ultimate v8.7", page_icon="🎓", layout="wide")
 
-# 2. GELİŞMİŞ GÖRSEL AYARLAR
+# 2. GÖRSEL DÜZENLEMELER
 st.markdown("""
     <style>
     .main { background-color: #0e1117; }
     h1, h2, h3, p, span, label { color: #ffffff !important; }
-    .stTextInput input { color: #ffffff !important; background-color: #262730 !important; }
     .cite-card { background-color: #1e1e1e; padding: 15px; border-radius: 10px; border: 1px solid #34d399; margin-bottom: 15px; }
-    code { color: #10b981 !important; font-size: 14px; white-space: pre-wrap !important; }
-    .intext-box { background-color: #002b36; color: #93a1a1; padding: 10px; border-radius: 5px; font-weight: bold; border-left: 5px solid #268bd2; margin: 5px 0; }
+    .intext-box { background-color: #002b36; color: #93a1a1; padding: 10px; border-radius: 5px; border-left: 5px solid #268bd2; }
+    .guide-step { background-color: #262730; padding: 10px; border-radius: 5px; border-left: 4px solid #ff4b4b; margin-bottom: 5px; }
     </style>
     """, unsafe_allow_html=True)
 
 if 'refs' not in st.session_state: st.session_state.refs = []
+if 'temp_search' not in st.session_state: st.session_state.temp_search = None
 
-# 3. AKILLI AKADEMİK ARAMA FONKSİYONLARI
-def fetch_from_crossref(query, is_doi=False):
-    if is_doi:
-        url = f"https://api.crossref.org/works/{query}"
-    else:
-        url = f"https://api.crossref.org/works?query={query}&rows=1"
-    
+# 3. AKILLI FONKSİYONLAR
+def fetch_crossref(query, is_doi=False):
+    url = f"https://api.crossref.org/works/{query}" if is_doi else f"https://api.crossref.org/works?query={query}&rows=1"
     try:
         res = requests.get(url, timeout=10)
         if res.status_code == 200:
@@ -37,92 +32,76 @@ def fetch_from_crossref(query, is_doi=False):
             title = item.get('title', ['Başlık Bulunamadı'])[0]
             authors = item.get('author', [])
             author_str = authors[0].get('family', 'Anonim') if authors else "Anonim"
-            try:
-                year = item.get('created', {}).get('date-parts', [[2026]])[0][0]
+            try: year = item.get('created', {}).get('date-parts', [[2026]])[0][0]
             except: year = 2026
-            doi_link = f"https://doi.org/{item.get('DOI', '')}" if item.get('DOI') else ""
-            return title, author_str, year, doi_link
+            doi = f"https://doi.org/{item.get('DOI', '')}" if item.get('DOI') else "Link Yok"
+            return {"title": title, "author": author_str, "year": year, "url": doi}
     except: return None
-    return None
-
-def process_pdf(file_bytes, filename):
-    try:
-        doc = fitz.open(stream=file_bytes, filetype="pdf")
-        text = "".join([doc[i].get_text() for i in range(min(len(doc), 2))])
-        doi_match = re.search(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', text, re.I)
-        if doi_match:
-            return fetch_from_crossref(doi_match.group().strip("/"), is_doi=True)
-        lines = [l.strip() for l in text.split('\n') if len(l.strip()) > 15]
-        return lines[0] if lines else filename.replace(".pdf", ""), "Doküman", 2026, filename
-    except: return filename, "Hata", 2026, filename
 
 # 4. ARAYÜZ
-st.title("🎓 Citemate Ultimate v8.6")
-st.subheader("Gelişmiş Atıf İstasyonu: Link, PDF ve Başlık ile Arama")
+st.title("🎓 Citemate Ultimate v8.7")
+
+# --- KULLANIM KILAVUZU SEKİSİ ---
+with st.expander("📖 SİTE KULLANIM KILAVUZU (Nasıl Kullanılır?)", expanded=False):
+    st.markdown('<div class="guide-step"><b>1. Format Seçin:</b> Sayfanın başındaki menüden akademik formatı (Vancouver, APA vb.) belirleyin.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="guide-step"><b>2. Kaynak Ekleyin:</b><br>- <b>Arama:</b> Makale adını yazıp "AI ile Ara" deyin. Sonucu onaylamadan kütüphaneye eklemez.<br>- <b>Link:</b> DOI numarasını veya URL yapıştırın.<br>- <b>PDF:</b> Dosyayı sürükleyin, AI içeriği tarasın.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="guide-step"><b>3. Atıfları Alın:</b> Sağ taraftaki "Metin İçi" sekmesinden makale içine yapıştıracağınız (1) veya (Yazar, 2026) kodlarını kopyalayın.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="guide-step"><b>4. Dışa Aktar:</b> Tüm liste bittiğinde "Kaynakça İndir" butonuyla Word/LaTeX için hazır listeyi alın.</div>', unsafe_allow_html=True)
 
 style = st.selectbox("Format Seçin:", ["Vancouver", "APA 7th", "IEEE", "MLA 9th", "Harvard"])
+st.divider()
 
 col_in, col_out = st.columns([4, 6], gap="large")
 
 with col_in:
     st.header("📥 Kaynak Ekle")
-    t_search, t_link, t_pdf = st.tabs(["🔍 Başlık ile Bul", "🔗 DOI / Link", "📄 PDF Yükle"])
+    t_search, t_link, t_pdf = st.tabs(["🔍 Başlık ile Ara", "🔗 DOI / Link", "📄 PDF Yükle"])
     
     with t_search:
-        title_q = st.text_input("Makale Adını Yazın:", placeholder="Örn: Effects of 3D scanning in dentistry...")
-        if st.button("Makaleyi Bul ve Ekle"):
-            if title_q:
-                with st.spinner("Akademik veri tabanları taranıyor..."):
-                    res = fetch_from_crossref(title_q)
-                    if res:
-                        st.session_state.refs.append({"title": res[0], "author": res[1], "year": res[2], "url": res[3]})
-                        st.success(f"Bulundu: {res[0]}")
-                        st.rerun()
-
-    with t_link:
-        url_in = st.text_input("DOI veya Tam URL:")
-        if st.button("Teşhis Et ve Ekle"):
-            doi_match = re.search(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', url_in, re.I)
-            with st.spinner("Analiz ediliyor..."):
-                if doi_match:
-                    res = fetch_from_crossref(doi_match.group().strip("/"), is_doi=True)
-                else:
-                    res = (url_in, "Web Kaynağı", 2026, url_in)
-                if res:
-                    st.session_state.refs.append({"title": res[0], "author": res[1], "year": res[2], "url": res[3]})
-                    st.rerun()
-
-    with t_pdf:
-        pdf_file = st.file_uploader("PDF Sürükleyin", type="pdf")
-        if pdf_file and st.button("PDF Analiz Et"):
-            with st.spinner("Okunuyor..."):
-                res = process_pdf(pdf_file.read(), pdf_file.name)
-                st.session_state.refs.append({"title": res[0], "author": res[1], "year": res[2], "url": res[3]})
+        title_q = st.text_input("Makale Adını Yazın:", key="q_search")
+        if st.button("AI ile Ara"):
+            if len(title_q.strip()) > 5: # Boş veya çok kısa aramayı önle
+                with st.spinner("Aranıyor..."):
+                    res = fetch_crossref(title_q)
+                    if res: st.session_state.temp_search = res
+                    else: st.error("Sonuç bulunamadı.")
+            else: st.warning("Lütfen geçerli bir başlık girin.")
+        
+        # ONAY MEKANİZMASI (Yanlış eklemeyi önler)
+        if st.session_state.temp_search:
+            st.markdown("---")
+            st.warning(f"**Bulunan Kaynak:**\n\n{st.session_state.temp_search['title']}")
+            if st.button("✅ Bu Doğru, Kütüphaneye Ekle"):
+                st.session_state.refs.append(st.session_state.temp_search)
+                st.session_state.temp_search = None
+                st.rerun()
+            if st.button("❌ Yanlış, İptal Et"):
+                st.session_state.temp_search = None
                 st.rerun()
 
+    with t_link:
+        url_in = st.text_input("DOI veya Link:")
+        if st.button("Linkten Teşhis Et"):
+            if url_in.strip():
+                doi_match = re.search(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', url_in, re.I)
+                with st.spinner("Analiz ediliyor..."):
+                    res = fetch_crossref(doi_match.group().strip("/"), is_doi=True) if doi_match else {"title": url_in, "author": "Web", "year": 2026, "url": url_in}
+                    st.session_state.refs.append(res)
+                    st.rerun()
+
 with col_out:
-    tab_bib, tab_intext = st.tabs(["📋 Kaynakça Listesi", "🖋️ Metin İçi (In-text)"])
-    
+    tab_bib, tab_intext = st.tabs(["📋 Kaynakça", "🖋️ Metin İçi"])
     all_bib = ""
     all_intext = ""
 
     if st.session_state.refs:
         with tab_bib:
             for i, r in enumerate(st.session_state.refs, 1):
-                if style == "Vancouver":
-                    cite = f"{i}. {r['author']}. {r['title']}. ({r['year']}). {r['url']}"
-                elif style == "APA 7th":
-                    cite = f"{r['author']} ({r['year']}). {r['title']}. {r['url']}"
-                elif style == "IEEE":
-                    cite = f"[{i}] {r['author']}, \"{r['title']}\", {r['year']}. {r['url']}"
-                else:
-                    cite = f"{r['author']}, {r['title']}, {r['year']}."
-                
+                cite = f"{i}. {r['author']}. {r['title']}. ({r['year']}). {r['url']}" if style == "Vancouver" else f"{r['author']} ({r['year']}). {r['title']}. {r['url']}"
                 st.code(cite)
                 all_bib += cite + "\n\n"
-
+        
         with tab_intext:
-            st.info(f"💡 {style} formatına göre atıf gösterimleri:")
             for i, r in enumerate(st.session_state.refs, 1):
                 intext = f"({i})" if style == "Vancouver" else f"({r['author']}, {r['year']})"
                 st.markdown(f"**{r['title'][:50]}...**")
@@ -131,14 +110,8 @@ with col_out:
 
         st.divider()
         col_d1, col_d2 = st.columns(2)
-        with col_d1:
-            st.download_button("📥 Kaynakçayı TXT İndir", data=all_bib, file_name="kaynakca.txt", use_container_width=True)
-        with col_d2:
+        with col_d1: st.download_button("📥 Kaynakçayı İndir", data=all_bib, file_name="kaynakca.txt", use_container_width=True)
+        with col_d2: 
             if st.button("🗑️ Tümünü Sil", use_container_width=True):
                 st.session_state.refs = []
                 st.rerun()
-        
-        st.subheader("Toplu Metin İçi Kopyalama")
-        st.text_area("Atıf Etiketleri:", value=all_intext, height=100)
-    else:
-        st.info("Henüz kaynak eklenmedi.")
