@@ -3,112 +3,132 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-# 1. SAYFA AYARLARI
-st.set_page_config(page_title="Citemate Engine v5", page_icon="📚", layout="wide")
+# 1. SAYFA YAPILANDIRMASI
+st.set_page_config(page_title="Citemate Pro v6", page_icon="🎓", layout="wide")
 
-# 2. RENK VE TEMA DÜZELTMESİ (Her temada okunabilir)
+# 2. GELİŞMİŞ GÖRSEL AYARLAR (Okunabilirlik Odaklı)
 st.markdown("""
     <style>
-    /* Başlıklar ve metinler için net renkler */
-    h1, h2, h3, p, span { color: #ffffff !important; }
-    .stTabs [data-baseweb="tab-list"] button { color: white; font-size: 18px; }
+    h1, h2, h3, p, span, label { color: #ffffff !important; }
+    .stTabs [data-baseweb="tab-list"] button { color: white; font-size: 16px; }
     .cite-card {
-        background-color: #262730;
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid #4CAF50;
-        margin-bottom: 15px;
+        background-color: #1e1e1e;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #34d399;
+        margin-bottom: 10px;
     }
-    .instruction-box { background-color: #1e1e1e; padding: 15px; border-radius: 8px; border-left: 5px solid #ff4b4b; }
-    code { color: #ffbd45 !important; background-color: #1a1a1a !important; }
+    .copy-area {
+        background-color: #000000;
+        color: #10b981 !important;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px dashed #10b981;
+        font-family: monospace;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 # 3. HAFIZA YÖNETİMİ
-if 'references' not in st.session_state: st.session_state.references = []
+if 'refs' not in st.session_state: st.session_state.refs = []
 
 # 4. YARDIMCI FONKSİYONLAR
-def get_title(url):
+def get_metadata(url):
     try:
         res = requests.get(url, timeout=5, headers={'User-Agent': 'Mozilla/5.0'})
         soup = BeautifulSoup(res.text, 'html.parser')
-        return soup.title.string.strip() if soup.title else url
-    except: return url
+        return soup.title.string.strip() if soup.title else "Bilinmeyen Kaynak"
+    except: return "Web Kaynağı"
 
-def add_multiple_sources(input_str, source_type):
-    urls = [u.strip() for u in input_str.split('\n') if u.strip()]
-    added_count = 0
-    for u in urls:
-        # Mükerrer Kontrolü
-        if not any(r['url'] == u for r in st.session_state.references):
-            title = get_title(u)
-            st.session_state.references.append({
-                "url": u, "title": title, "type": source_type,
-                "year": datetime.now().year, "access": datetime.now().strftime("%d.%m.%Y")
-            })
-            added_count += 1
-    return added_count
+def format_cite(ref, style, idx):
+    title = ref['title']
+    url = ref['url']
+    date = ref['year']
+    access = ref['access']
+    
+    if style == "Vancouver":
+        return f"({idx}) {title}. Available at: {url} (Accessed: {access})"
+    elif style == "APA 7th":
+        return f"{title}. ({date}). Retrieved from {url}"
+    elif style == "MLA 9th":
+        return f'"{title}." {date}, {url}. Accessed {access}.'
+    elif style == "Harvard":
+        return f"{title} ({date}). Available at: {url} [Accessed {access}]."
+    elif style == "IEEE":
+        return f"[{idx}] {title}, {date}. [Online]. Available: {url}"
+    elif style == "Chicago":
+        return f"{title}. {date}. {url} (accessed {access})."
+    return title
 
 # 5. ARAYÜZ
-st.title("📚 Citemate v5.0")
-st.subheader("Akademik Kaynak ve Atıf Dönüştürücü")
+st.title("🎓 Citemate Pro v6")
+st.subheader("Gelişmiş Akademik Atıf Yönetimi")
 
-# NASIL KULLANILIR SEKİSİ
-with st.expander("❓ Nasıl Kullanılır? (Rehber)"):
-    st.markdown("""
-    1. **Format Seçin:** En üstteki menüden hedef formatınızı belirleyin.
-    2. **Kaynak Ekleyin:** Linkleri veya PDF bağlantılarını ilgili sekmeye **alt alta** yapıştırın.
-    3. **Toplu İşlem:** 'Hepsini İşle' butonuna basın, sistem mükerrer olanları ayıklar.
-    4. **Sonuçları Alın:** Her kaynağın altında hem **Metin İçi (In-text)** hem de **Kaynakça (Bibliography)** halini göreceksiniz.
-    """)
-
-# FORMAT VE TÜR SEÇİMİ
-sel_format = st.selectbox("Hedef Akademik Format:", ["Vancouver", "APA 7th", "Harvard", "MLA"])
-
-tab1, tab2 = st.tabs(["🔗 Web Linkleri Ekle", "📄 PDF Bağlantıları Ekle"])
-
-with tab1:
-    urls_input = st.text_area("Web linklerini her satıra bir tane gelecek şekilde yapıştırın:", height=150)
-    if st.button("Linkleri Toplu İşle", type="primary"):
-        count = add_multiple_sources(urls_input, "Web")
-        st.success(f"{count} yeni web kaynağı eklendi!")
-
-with tab2:
-    pdf_input = st.text_area("PDF (DOI/Direct) linklerini alt alta yapıştırın:", height=150)
-    if st.button("PDF'leri Toplu İşle", type="primary"):
-        count = add_multiple_sources(pdf_input, "PDF")
-        st.success(f"{count} yeni PDF kaynağı eklendi!")
+# FORMAT SEÇİCİ (Tüm meşhur formatlar)
+all_styles = ["Vancouver", "APA 7th", "MLA 9th", "Harvard", "IEEE", "Chicago"]
+selected_style = st.selectbox("Atıf Formatını Seçin:", all_styles)
 
 st.divider()
 
-# 6. SONUÇLAR: METİN İÇİ VE KAYNAKÇA
-st.header("📋 Dönüştürülmüş Kaynaklar")
+col_in, col_out = st.columns([1, 1], gap="large")
 
-if st.session_state.references:
-    for idx, ref in enumerate(st.session_state.references, 1):
-        with st.container():
-            st.markdown(f"### Kaynak #{idx} ({ref['type']})")
+with col_in:
+    st.header("📥 Kaynak Ekle")
+    
+    tab_link, tab_file = st.tabs(["🔗 Link ile Ekle", "📂 Cihazdan PDF Ekle"])
+    
+    with tab_link:
+        link_input = st.text_input("URL / DOI Adresi:", placeholder="https://...")
+        if st.button("Kaynağı Listeye Ekle", type="primary"):
+            if link_input and not any(r['url'] == link_input for r in st.session_state.refs):
+                with st.spinner('Bilgiler çekiliyor...'):
+                    t = get_metadata(link_input)
+                    st.session_state.refs.append({
+                        "url": link_input, "title": t, "year": datetime.now().year, 
+                        "access": datetime.now().strftime("%d.%m.%Y"), "type": "Web"
+                    })
+                st.success("Eklendi!")
+            elif any(r['url'] == link_input for r in st.session_state.refs):
+                st.warning("Bu kaynak zaten ekli!")
+
+    with tab_file:
+        uploaded_file = st.file_uploader("PDF Dosyası Seçin", type="pdf")
+        if uploaded_file is not None:
+            if not any(r['url'] == uploaded_file.name for r in st.session_state.refs):
+                st.session_state.refs.append({
+                    "url": uploaded_file.name, "title": uploaded_file.name.replace(".pdf", ""), 
+                    "year": datetime.now().year, "access": datetime.now().strftime("%d.%m.%Y"), "type": "Dosya"
+                })
+                st.success(f"{uploaded_file.name} listeye eklendi.")
+
+with col_out:
+    st.header("📋 Kaynakça Çıktısı")
+    
+    if st.session_state.refs:
+        full_bibliography = ""
+        for i, r in enumerate(st.session_state.refs, 1):
+            formatted = format_cite(r, selected_style, i)
+            full_bibliography += formatted + "\n\n"
             
-            # Format Mantığı
-            if sel_format == "Vancouver":
-                in_text = f"({idx})"
-                bib = f"{idx}. {ref['title']}. Available at: {ref['url']} (Accessed: {ref['access']})"
-            else: # APA Örneği
-                in_text = f"(Anon, {ref['year']})"
-                bib = f"{ref['title']}. ({ref['year']}). Retrieved from {ref['url']}"
+            with st.container():
+                st.markdown(f"**[{i}] {r['title']}**")
+                st.code(formatted, language="text")
+        
+        st.divider()
+        st.subheader("📤 Toplu Kopyala")
+        st.text_area("Tüm kaynakçayı buradan kopyalayabilirsiniz:", value=full_bibliography, height=200)
+        
+        if st.button("🗑️ Listeyi Sıfırla"):
+            st.session_state.refs = []
+            st.rerun()
+    else:
+        st.info("Henüz kaynak eklenmedi.")
 
-            # GÖRSEL KARTLAR
-            col_a, col_b = st.columns(2)
-            with col_a:
-                st.info("**Metin İçinde Yazımı:**")
-                st.code(in_text, language="text")
-            with col_b:
-                st.success("**Kaynakça Yazımı:**")
-                st.code(bib, language="text")
-            st.divider()
-
-    if st.button("🗑️ Tüm Listeyi Temizle"):
-        st.session_state.references = []
-        st.rerun()
-else:
-    st.info("Henüz kaynak eklenmedi. Linkleri yukarıdaki alanlara yapıştırıp 'İşle' butonuna basın.")
+# NASIL KULLANILIR
+with st.expander("ℹ️ Yardım ve Kullanım"):
+    st.write("""
+    - **Link:** Web siteleri veya online makaleler için URL girip ekleyin.
+    - **Cihazdan Ekle:** Bilgisayarınızdaki PDF'leri sürükleyip bırakın.
+    - **Mükerrer:** Aynı linki/dosyayı sistem iki kez eklemez.
+    - **Toplu Kopyalama:** Sağ taraftaki metin alanından tüm listeyi tek seferde alabilirsiniz.
+    """)
