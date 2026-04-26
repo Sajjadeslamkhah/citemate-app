@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import re
 import fitz  # PyMuPDF
+import base64 # Logo entegrasyonu için gerekli
 
 # ==========================================
 # 1. SAYFA YAPILANDIRMASI & SEO
@@ -9,16 +10,33 @@ import fitz  # PyMuPDF
 st.set_page_config(page_title="Citemate Pro | Elite Academic Citation", page_icon="🎓", layout="wide")
 
 # ==========================================
+# LOGO ENTEGRASYONU (Base64 Teknolojisi)
+# ==========================================
+# Bu fonksiyon, resim dosyasını GitHub/Render'a yüklemeden doğrudan koda gömer.
+def get_base64_of_bin_file(bin_file):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+# UYARI: 'image_1.png' dosyasının 'app.py' ile aynı klasörde olduğundan emin olun.
+# Eğer dosyayı assets/ klasörüne koyduysanız yolu 'assets/image_1.png' yapın.
+try:
+    logo_base64 = get_base64_of_bin_file('image_1.png')
+    logo_html = f'<img src="data:image/png;base64,{logo_base64}" class="sidebar-logo">'
+except FileNotFoundError:
+    # Eğer logo dosyası bulunamazsa site hata vermez, sadece yer tutucu gösterir.
+    logo_html = '<p style="color:#34d399; font-weight:bold; text-align:center;">[ LOGO ]</p>'
+
+# ==========================================
 # 2. KRİTİK HAFIZA BAŞLATMA (Hata Giderici)
 # ==========================================
-# Uygulama başında değişkenleri tanımlayarak AttributeError hatasını engelliyoruz.
 if 'refs' not in st.session_state:
     st.session_state.refs = []
 if 'lang' not in st.session_state:
     st.session_state.lang = "Türkçe"
 
 # ==========================================
-# 3. TASARIM (CSS)
+# 3. TASARIM (CSS) & Renk Uyumu
 # ==========================================
 MY_EMAIL = "mbgsajjad@gmail.com"
 
@@ -29,6 +47,18 @@ st.markdown(f"""
     .service-card {{ background: #161b22; padding: 22px; border-radius: 15px; border-left: 4px solid #34d399; margin-bottom: 15px; }}
     .feature-tag {{ background: #064e3b; color: #34d399; padding: 3px 10px; border-radius: 5px; font-size: 10px; font-weight: bold; margin-right: 5px; }}
     .footer {{ color: #64748b; font-size: 14px; text-align: center; margin-top: 60px; padding: 20px; border-top: 1px solid #1e293b; }}
+    
+    /* Logo Stil ve Renk Uyumu */
+    .sidebar-logo {{
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 150px; /* Logo genişliği */
+        margin-bottom: 15px;
+        border-radius: 10px;
+        /* Koyu lacivert logoyu yeşil temayla bütünleştirmek için hafif bir gölge */
+        box-shadow: 0px 4px 15px rgba(52, 211, 153, 0.3); 
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -36,7 +66,10 @@ st.markdown(f"""
 # 4. YAN MENÜ (NAVİGASYON)
 # ==========================================
 with st.sidebar:
-    st.markdown('<p style="font-size:26px; font-weight:bold; color:#34d399;">🎓 Citemate Pro</p>', unsafe_allow_html=True)
+    # LOGO BURAYA EKLENDİ
+    st.markdown(logo_html, unsafe_allow_html=True)
+    
+    st.markdown('<p style="font-size:26px; font-weight:bold; color:#34d399; text-align:center;">🎓 Citemate Pro</p>', unsafe_allow_html=True)
     st.divider()
     
     # Dil Seçimi
@@ -45,13 +78,12 @@ with st.sidebar:
     if c2.button("🇺🇸 EN"): st.session_state.lang = "English"
     
     st.divider()
-    # Sayfa Seçimi - Callback kullanılmadan daha stabil
     page_selection = st.radio("MENÜ", ["🏠 Atıf Motoru", "💎 Profesyonel Hizmetler"], label_visibility="collapsed")
     
     st.divider()
     st.markdown(f"""
         <div style="background: #1e293b; padding: 15px; border-radius: 12px; border: 1px solid #334155;">
-            <p style="color: #34d399; font-weight: bold; margin-bottom: 5px;">📩 Bize Ulaşın</p>
+            <p style="color: #34d399; font-weight: bold; margin-bottom: 5px; text-align:center;">📩 Bize Ulaşın</p>
             <a href="mailto:{MY_EMAIL}" style="display: block; background: #34d399; color: black; text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; text-decoration: none;">Mesaj Gönder</a>
         </div>
     """, unsafe_allow_html=True)
@@ -67,11 +99,10 @@ def fetch_academic_data(query, is_doi=False):
         res = requests.get(url, timeout=10).json()
         item = res['message'] if is_doi else res['message']['items'][0]
         
-        # Profesyonel Yazar Formatı
         authors = item.get('author', [])
         formatted_authors = [f"{a.get('family', '')} {a.get('given', '')[:1]}" for a in authors[:6]]
         author_str = ", ".join(formatted_authors)
-        if len(authors) > 6: author_str += " et al"
+        if len(authors) > 6: author_str += " et et."
         
         return {
             "title": item.get('title', ['Untitled'])[0],
@@ -90,7 +121,7 @@ def fetch_academic_data(query, is_doi=False):
 # ==========================================
 
 if page_selection == "🏠 Atıf Motoru":
-    st.markdown('<p class="main-title">🎓 Citemate Pro</p>', unsafe_allow_html=True)
+    st.markdown('<p class="main-title">🎓 Atıf Motoru</p>', unsafe_allow_html=True)
     st.markdown(f'<p style="color:#94a3b8; margin-bottom:30px;">{"Global Akademik Veritabanı Entegrasyonu" if st.session_state.lang == "Türkçe" else "Global Academic Database Integration"}</p>', unsafe_allow_html=True)
 
     style = st.selectbox("Bibliyografik Format:", ["Vancouver (NLM)", "APA 7th", "IEEE"])
@@ -116,7 +147,6 @@ if page_selection == "🏠 Atıf Motoru":
         f = st.file_uploader("PDF Yükle (Maks 10MB)", type="pdf")
         if f and st.button("Otomatik Veri Çek", key="btn_pdf"):
             try:
-                # PDF dosyasını güvenli bir şekilde açıp kapatıyoruz (Hata Giderici)
                 with fitz.open(stream=f.read(), filetype="pdf") as doc:
                     text = "".join([p.get_text() for p in doc[:3]])
                     match = re.search(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', text, re.I)
@@ -129,12 +159,10 @@ if page_selection == "🏠 Atıf Motoru":
             except Exception as e:
                 st.error(f"PDF işleme hatası oluştu.")
     
-    # Referans Listesi Görüntüleme (Hata Kontrolü Eklendi)
     if len(st.session_state.refs) > 0:
         st.divider()
         txt_out = ""
         for i, r in enumerate(st.session_state.refs, 1):
-            # Bilimsel detayların (cilt, sayı, sayfa) kontrolü
             vol_iss = f"{r['vol']}({r['issue']})" if r['vol'] and r['issue'] else r['vol']
             pgs = f":{r['page']}" if r['page'] else ""
             
@@ -149,8 +177,8 @@ if page_selection == "🏠 Atıf Motoru":
             txt_out += cite + "\n"
         
         c_d1, c_d2 = st.columns(2)
-        with c_d1: st.download_button("📥 TXT Olarak İndir", txt_out, use_container_width=True)
-        with c_d2: 
+        with c_c1: st.download_button("📥 TXT Olarak İndir", txt_out, use_container_width=True)
+        with c_c2: 
             if st.button("🗑️ Listeyi Temizle", use_container_width=True): 
                 st.session_state.refs = []
                 st.rerun()
