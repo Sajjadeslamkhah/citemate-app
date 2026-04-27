@@ -960,7 +960,6 @@ elif st.session_state.page == "about":
     
     st.markdown("""
     <h3 style="color: #34d399;">The Team</h3>
-    
     <div class="feature-box">
     <strong>Developers:</strong> Lifegenix Consulting
     <br><strong>Founded:</strong> 2022
