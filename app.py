@@ -352,6 +352,10 @@ with st.sidebar:
         st.session_state.page = "about"
         st.rerun()
     
+    if st.button("💎 Profesyonel Hizmetler", use_container_width=True, key="nav_services"):
+        st.session_state.page = "services"
+        st.rerun()
+    
     st.divider()
     st.markdown(f"""
     <div class="info-box">
@@ -891,5 +895,129 @@ elif st.session_state.page == "about":
     <br><strong>Güncellemeler:</strong> Aylık sürümler
     </div>
     """, unsafe_allow_html=True)
+
+# ==========================================
+# PROFESSIONAL SERVICES PAGE
+# ==========================================
+
+elif st.session_state.page == "services":
+    col1, col2 = st.columns([3, 2])
+    
+    with col1:
+        st.markdown('<p class="main-title">💎 Profesyonel Hizmetler</p>', unsafe_allow_html=True)
+        st.markdown('<p class="subtitle">Veri Analizinden Yayına Kadar Stratejik Çözümler</p>', unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="info-box">
+        <p><strong>Lifegenix Danışmanlık</strong>, akademik araştırmanın ve veri analizinin her adımında uzmanlaşmıştır. Citemate Pro'nun arkasındaki uzmanlık, size profesyonel kalite garantisi sağlar.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<h3 style='color: #34d399;'>Sunduğumuz Hizmetler</h3>", unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="feature-box">
+        <h4 style="color: #34d399;">🧬 Genetik & Omik Veri Analizi</h4>
+        <p><strong>Uzmanlık Alanları:</strong></p>
+        <ul>
+        <li>NCBI, GEO, TCGA veritabanı analizi</li>
+        <li>Fenotip-genotip korelasyonu</li>
+        <li>Genomik veri işleme ve görselleştirme</li>
+        <li>Biyoinformatik pipeline geliştirme</li>
+        <li>Python, R, Bash uygulaması</li>
+        </ul>
+        <p><strong>Çıktı:</strong> Hazır tez, makale verisi</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="feature-box">
+        <h4 style="color: #34d399;">🤖 Sağlıkta Makine Öğrenmesi</h4>
+        <p><strong>Uzmanlık Alanları:</strong></p>
+        <ul>
+        <li>Hastalık tahmin modelleri</li>
+        <li>Klinik ve omik veri sınıflandırması</li>
+        <li>Tanı destek sistemleri</li>
+        <li>Prognoz tahmin algoritmaları</li>
+        <li>Model doğrulama ve optimizasyonu</li>
+        </ul>
+        <p><strong>Çıktı:</strong> Yayınlanabilir ML makalesi</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("")
+        st.markdown("")
+        
+        st.markdown("""
+        <div class="feature-box">
+        <h4 style="color: #34d399;">📊 Büyük Veri Analitikleri</h4>
+        <p><strong>Uzmanlık Alanları:</strong></p>
+        <ul>
+        <li>Büyük çaplı akademik veri işleme</li>
+        <li>İleri istatistiksel raporlama</li>
+        <li>Karmaşık veri görselleştirme</li>
+        <li>Dashboard ve interaktif araçlar</li>
+        <li>Veri kalite kontrolü</li>
+        </ul>
+        <p><strong>Çıktı:</strong> Yayın hazır istatistikler</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="feature-box">
+        <h4 style="color: #34d399;">🖋️ Referans & Editorial Hizmetleri</h4>
+        <p><strong>Uzmanlık Alanları:</strong></p>
+        <ul>
+        <li>Karmaşık kaynakça yönetimi</li>
+        <li>Akademik yazı kalite kontrolü</li>
+        <li>Yayın hazırlık danışmanlığı</li>
+        <li>Makale optimizasyonu</li>
+        <li>Dergi seçim stratejileri</li>
+        </ul>
+        <p><strong>Çıktı:</strong> Kabul edilen makale</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.divider()
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div class="why-item">
+        <strong>👨‍🔬 Akademik Ekip</strong>
+        <p>Biruni Üniversitesi araştırma grubu - Doktora ve Doçent düzeyinde uzmanlar</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="why-item">
+        <strong>📚 Yayın Geçmişi</strong>
+        <p>Springer, MDPI, PubMed'de 25+ yayın, en iyi dergiler</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+        <div class="why-item">
+        <strong>🏆 Başarı Oranı</strong>
+        <p>%95 yayın kabul oranı, %99 müşteri memnuniyeti</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.divider()
+    
+    if st.button("📧 Bize Ulaşın", use_container_width=True, key="contact_services"):
+        st.markdown(f"""
+        <div class="info-box" style="text-align: center;">
+        <h3 style="color: #34d399;">İletişim</h3>
+        <p style="font-size: 18px; margin: 15px 0;">
+        <a href="mailto:mbgsajjad@gmail.com" style="color: #34d399; text-decoration: none; font-weight: bold;">📧 mbgsajjad@gmail.com</a>
+        </p>
+        <p style="color: #94a3b8;">Akademik işbirliği ve hizmet teklifleri için bizimle iletişime geçin.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 st.markdown(f'<div class="footer">{get_text("copyright")} | Lifegenix Consulting Ltd.</div>', unsafe_allow_html=True)
