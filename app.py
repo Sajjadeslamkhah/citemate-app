@@ -987,7 +987,7 @@ elif st.session_state.page == "services":
         st.markdown("""
         <div class="why-item">
         <strong>👨‍🔬 Akademik Ekip</strong>
-        <p>Biruni Üniversitesi araştırma grubu - Doktora ve Doçent düzeyinde uzmanlar</p>
+        <p>Araştırmacılar tarafından - Doktora ve Doçent düzeyinde uzmanlar</p>
         </div>
         """, unsafe_allow_html=True)
     
