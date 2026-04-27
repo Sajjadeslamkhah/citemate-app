@@ -1020,4 +1020,4 @@ elif st.session_state.page == "services":
         </div>
         """, unsafe_allow_html=True)
 
-st.markdown(f'<div class="footer">{get_text("copyright")} | Lifegenix Consulting Ltd.</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="footer">{get_text("copyright")} | Lifegenix Consulting Ltd.</div>', unsafe_allow_html=True)ƒ
