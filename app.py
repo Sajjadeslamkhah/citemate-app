@@ -962,10 +962,8 @@ elif st.session_state.page == "about":
     <h3 style="color: #34d399;">The Team</h3>
     
     <div class="feature-box">
-    <strong>Developers:</strong> Milad & Sajjad Eslamkhah
-    <br><strong>Institution:</strong> Biruni University, Istanbul
-    <br><strong>Support:</strong> Lifegenix Consulting
-    <br><strong>Founded:</strong> 2025
+    <strong>Developers:</strong> Lifegenix Consulting
+    <br><strong>Founded:</strong> 2022
     <br><strong>Updates:</strong> Monthly releases
     </div>
     """, unsafe_allow_html=True)
