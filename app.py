@@ -492,6 +492,7 @@ elif st.session_state.page == "general":
 # CITATION ENGINE PAGE
 # ==========================================
 
+elif st.session_state.page == "citation_engine":
     st.markdown('<p class="main-title">🔗 Atıf Motoru</p>', unsafe_allow_html=True)
     
     style = st.selectbox(get_text("format_label"), ["Vancouver", "APA 7. Baskı", "IEEE", "MLA"], index=0)
