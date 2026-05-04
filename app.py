@@ -1019,5 +1019,3 @@ elif st.session_state.page == "services":
         <p style="color: #94a3b8;">Akademik işbirliği ve hizmet teklifleri için bizimle iletişime geçin.</p>
         </div>
         """, unsafe_allow_html=True)
-
-st.markdown(f'<div class="footer">{get_text("copyright")} | Lifegenix Consulting Ltd.</div>', unsafe_allow_html=True)ƒ
